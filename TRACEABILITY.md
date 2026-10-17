@@ -48,11 +48,11 @@ Mobile uses authenticated APIs; native acceptance remains pending (docs/MOBILE.m
 | NFR-3 | Concurrency correctness | `services/store.js:checkoutInTx` | `tests/api/test_checkout_api.py::test_nfr3_*` (burst 20 x20, same-id parallel, multi-item) | Tested |
 | NFR-4 | Offline tolerance | `mobile/src/services/storage/*`, `mobile/src/services/sync/*` (planned) | `tests/api/test_offline_sync_api.py`, desk-check script in `docs/MOBILE.md` | Todo |
 | NFR-5 | Security | `lib/jwt.js`, `http/middleware/*`, `domain/rbac/*`, `scripts/sql-guard.js`, mobile `src/services/auth/session.ts` (planned) | `tests/api/test_security_api.py`, `tests/api/test_rbac_api.py`, 4.7k-request fuzz run (0 × 5xx, see report) | Tested (backend); mobile storage pending |
-| NFR-7 | Reproducibility | `docker-compose.yml`, `backend/src/index.js`, `Dockerfile` | CI cold start (`.github/workflows/ci.yml`); `docker compose config` verified locally | In progress: cold `up --build` NOT run on this machine (no registry access from the sandbox) |
+| NFR-7 | Reproducibility | `docker-compose.yml`, `backend/Dockerfile`, `backend/src/index.js` | Human run 2026-10-17 on Fedora: `docker compose up -d --build` → all 5 services healthy, `/health` ok in ~11 s; `down -v` + `up` → healthy, reset ok; CI cold start (`.github/workflows/ci.yml`) | Tested (image layers were cached; a fully cold image build is still to time) |
 | NFR-PERF-01 | Latency bounds | all services | timing asserts in `tests/api/test_checkout_api.py` (burst < 10 s), `tests/api/test_platform_api.py` (reset < 10 s); manual load run: 681 req/s, p95 140 ms | Tested |
 | NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js:sign` | `unit/scoring/signature.test.js` (App. A vector 1), `tests/api/test_events_api.py::test_nfr_sig_*`, `tests/api/test_checkout_api.py` | Tested |
 | NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js:sign` | `unit/scoring/signature.test.js` (App. A vector 1), `tests/api/test_events_api.py::test_nfr_sig_*`, `tests/api/test_checkout_api.py` | Tested |
-| DEL-01…08 | Deliverables | `docker-compose.yml`, `.env.example`, `README.md`, `TRACEABILITY.md`, `run_tests.sh`, `COVERAGE.json` | Appendix C checklist (REQUIREMENTS §11) | In progress: APK (DEL-06) and push windows (DEL-07) are human/mobile items |
+| DEL-01…08 | Deliverables | `docker-compose.yml`, `.env.example`, `README.md`, `TRACEABILITY.md`, `run_tests.sh`, `COVERAGE.json` | Appendix C checklist (REQUIREMENTS §11) | In progress: backend items verified on the human's machine; APK (DEL-06), push windows (DEL-07) and the demo-data rehearsal remain |
 
 
 
