@@ -5,3 +5,4 @@ Appium-Python-Client
 allure-pytest
 pytest-html
 pytest-timeout
+pypdf

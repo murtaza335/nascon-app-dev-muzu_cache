@@ -201,7 +201,7 @@ CREATE TABLE orders (
   receipt        jsonb NOT NULL,
   pdf            bytea,
   request_hash   text NOT NULL,
-  response       jsonb NOT NULL,
+  response       text NOT NULL,
   created_at     timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX orders_customer_idx ON orders (customer_id);
@@ -219,7 +219,7 @@ CREATE TABLE idempotency (
   client_id    text NOT NULL,
   request_hash text NOT NULL,
   status_code  integer NOT NULL,
-  response     jsonb NOT NULL,
+  response     text NOT NULL,                 -- exact JSON text: replays keep key order
   created_at   timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (scope, client_id)
 );

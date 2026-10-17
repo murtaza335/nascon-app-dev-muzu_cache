@@ -36,9 +36,9 @@ behavior and tests exist. This review does not mark MOB/NFR requirements complet
 | FR-2.2-03 | Loan auto-return | `domain/roster/loanReturn.js` | `unit/roster/loanReturn.test.js` | Todo |
 | FR-2.2-04 | Audit trail + history (API-11) | `repos/roster.js`, `routes/audit/roster.js` | `tests/api/test_roster_api.py` | Todo |
 | FR-2.2-05 | Add player, roles | `routes/api/roster.js` | `tests/api/test_app_roster.py` | Todo |
-| FR-2.3-01 | Catalogue, variants, price schedules, discounts | `domain/store/pricing.js`, `routes/api/store.js` | `unit/store/pricing.test.js` | Todo |
-| FR-2.3-02 | Checkout + receipt + PDF (API-12) | `services/store.js`, `domain/store/*.js`, `pdf/receiptPdf.js` | `unit/store/*.test.js`, `tests/api/test_checkout_api.py` | Todo |
-| FR-2.3-03 | Inventory (API-13) | `routes/audit/inventory.js` | `tests/api/test_checkout_api.py` | Todo |
+| FR-2.3-01 | Catalogue, variants, price schedules, discounts | `domain/store/pricing.js:effectivePrice`, `repos/store.js` (catalogue routes APP-50 pending) | `unit/store/store.test.js` | Done (code); APP-50/51 pending |
+| FR-2.3-02 | Checkout + receipt + PDF (API-12) | `services/store.js:checkout`, `domain/store/*.js`, `pdf/receiptPdf.js:renderReceipt` | `unit/store/store.test.js`, `tests/api/test_checkout_api.py` | Tested |
+| FR-2.3-03 | Inventory (API-13) | `routes/audit/store.js:GET /inventory/:variant_id`, `services/store.js:getInventory` | `tests/api/test_checkout_api.py::test_fr_2_3_03_inventory` | Tested |
 | FR-2.3-04 | Order states + domain events | `domain/store/orderStateMachine.js`, `queue/outbox.js`, `worker.js` | `unit/store/orderStateMachine.test.js`, `tests/api/test_queue.py` | Todo |
 | FR-2.3-05 | Pinned product showcase | `routes/api/matches.js`, `realtime/ws.js` | `tests/api/test_app_matches.py` | Todo |
 | FR-5.1-01 | 5-tier RBAC policy-as-code | `domain/rbac/matrix.js`, `domain/rbac/policy.js:authorize`, `http/middleware/authenticate.js`, `routes/audit/rbac.js` | `unit/rbac/policy.test.js`, `tests/api/test_rbac_api.py::test_fr_5_1_01_probe_matrix` (85 cases) | Tested |
@@ -47,7 +47,7 @@ behavior and tests exist. This review does not mark MOB/NFR requirements complet
 | FR-SYS-02 | Reset + baseline (API-02) | `services/reset.js:resetAll`, `seed/baseline.js:seedBaseline` | `tests/api/test_platform_api.py::test_fr_sys_02_*` | Tested |
 | FR-SYS-03 | Rate-limited ping (API-16) | `http/middleware/rateLimit.js`, `lib/rateLimiter.js`, `routes/api/ping.js` | `unit/lib/rateLimiter.test.js`, `tests/api/test_security_api.py` | Tested |
 | FR-OFF-01 | Offline sync (API-17, APP-40) | `domain/sync/resolve.js`, `services/sync.js` | `unit/sync/resolve.test.js`, `tests/api/test_offline_sync_api.py` | Todo |
-| NFR-3 | Concurrency correctness | `services/store.js` | `tests/api/test_checkout_api.py::test_nfr3_burst_20` | Todo |
+| NFR-3 | Concurrency correctness | `services/store.js:checkoutInTx` | `tests/api/test_checkout_api.py::test_nfr3_*` (burst 20 x20, same-id parallel, multi-item) | Tested |
 | NFR-4 | Offline tolerance | `mobile/src/services/storage/*`, `mobile/src/services/sync/*` (planned) | `tests/api/test_offline_sync_api.py`, desk-check script in `docs/MOBILE.md` | Todo |
 | NFR-5 | Security | `lib/jwt.js`, `http/middleware/*`, `domain/rbac/*`, mobile `src/services/auth/session.ts` (planned) | `tests/api/test_security_api.py`, `tests/api/test_rbac_api.py` | Todo |
 | NFR-7 | Reproducibility | `docker-compose.yml`, `backend/src/index.js` | CI cold start (`.github/workflows/ci.yml`) | Todo |

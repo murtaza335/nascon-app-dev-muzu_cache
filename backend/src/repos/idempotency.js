@@ -3,7 +3,8 @@
 async function find(client, scope, clientId) {
   const { rows } = await client.query(
     'SELECT request_hash, status_code, response FROM idempotency WHERE scope = $1 AND client_id = $2', [scope, clientId]);
-  return rows[0] || null;
+  if (!rows[0]) return null;
+  return { ...rows[0], response: JSON.parse(rows[0].response) };
 }
 
 async function store(client, scope, clientId, requestHash, statusCode, response) {

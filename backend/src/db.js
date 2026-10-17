@@ -1,6 +1,9 @@
 'use strict';
-const { Pool } = require('pg');
+const { Pool, types } = require('pg');
 const config = require('./config');
+
+// bigint (money in paisa, serial ids) stays far below 2^53, so return numbers instead of strings.
+types.setTypeParser(20, (v) => Number(v));
 
 const pool = new Pool({
   connectionString: config.databaseUrl,
