@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY src ./src
+RUN mkdir -p /data && chown node:node /data
 ENV NODE_ENV=production
 EXPOSE 8080
 USER node

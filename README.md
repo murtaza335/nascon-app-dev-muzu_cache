@@ -37,7 +37,7 @@ For the desk check (judge phone), add demo fixtures, rosters and products first:
 | worker | same image | none | outbox relay → Redis Stream, consumer, receipt archive to MinIO, reservation sweeper |
 | postgres | `postgres:16-alpine` | none | source of truth, volume `pgdata` |
 | redis | `redis:7-alpine` | none | cache-aside for `/api/v1` reads + the `domain-events` stream |
-| objectstore | `localstack/localstack:3.8.1` (S3 only; MinIO no longer publishes images) | none | S3 API on `objectstore:4566`, bucket `receipts`; copies only, the receipt of record is in PostgreSQL |
+| objectstore | same image as the backend (`backend/src/objectstore.js`) | none | tiny S3-compatible server on `objectstore:4566`, bucket `receipts`, volume `objects`; MinIO no longer publishes images and the alternatives are ~1 GB, so nothing extra is downloaded. Copies only: the receipt of record is in PostgreSQL |
 
 ## Demo accounts (password `Nascon@26`, recreated by every startup and `/reset`)
 

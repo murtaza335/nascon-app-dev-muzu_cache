@@ -33,28 +33,33 @@ services:
     restart: unless-stopped
 
   objectstore:
-    # S3-compatible object store for the receipt archive (worker only). MinIO no longer publishes images (Docker Hub and
-    # Quay both refuse the pull), so this is LocalStack's S3 service: open source, pinned, any access key is accepted.
-    # The API does not depend on it, so /health is never delayed by object storage. Archived PDFs are copies: the
-    # authoritative receipt stays in PostgreSQL, so the store needs no volume.
-    image: localstack/localstack:3.8.1
+    # S3-compatible receipt archive (worker only): our own small server (backend/src/objectstore.js) from the same image
+    # as the API. MinIO no longer publishes images, and the alternatives are ~1 GB downloads. Archived PDFs are copies;
+    # the receipt of record is in PostgreSQL. The API does not depend on it, so /health is never delayed by it.
+    image: nascon-backend:local
+    command: ["node", "src/objectstore.js"]
     environment:
-      SERVICES: s3
-      DEBUG: "0"
-      DISABLE_EVENTS: "1"
+      OBJECT_DIR: /data
+      OBJECTSTORE_PORT: 4566
+    volumes:
+      - objects:/data
+    depends_on:
+      backend:
+        condition: service_started   # only so compose builds and tags the shared image first
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4566/_localstack/health | grep -Eq 's3.{1,6}(available|running)'"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4566/_health || exit 1"]
       interval: 5s
-      timeout: 5s
-      retries: 24
-      start_period: 10s
+      timeout: 3s
+      retries: 12
     restart: unless-stopped
 
   backend:
+    # Builds and tags the one image shared by backend, worker and objectstore.
     # Error format and strict input validation: backend/src/errors.js and lib/validate.js (ADR-003).
     # Redis cache-aside with version-key invalidation: backend/src/cache.js (ADR-004).
     # Config here must work with no .env file except DAY1_SALT, which the grader supplies in the environment.
     build: ./backend
+    image: nascon-backend:local
     ports:
       - "8080:8080"
     environment:
@@ -84,8 +89,8 @@ services:
     restart: unless-stopped
 
   worker:
-    # Same image as the API: transactional-outbox relay → Redis Stream, consumer group, receipt archive to MinIO.
-    build: ./backend
+    # Same image as the API: transactional-outbox relay → Redis Stream, consumer group, receipt archive.
+    image: nascon-backend:local
     command: ["node", "src/worker.js"]
     environment:
       NODE_ENV: production
@@ -115,3 +120,4 @@ services:
 
 volumes:
   pgdata:
+  objects:

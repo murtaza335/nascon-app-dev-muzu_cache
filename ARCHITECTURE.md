@@ -18,7 +18,7 @@ the difference is listed here and in `docs/CHANGELOG.md`:
 | Topic | Planned | Implemented |
 |---|---|---|
 | Compose service name | `api` | `backend` (plus `worker`, `postgres`, `redis`, `objectstore`) |
-| Object store | MinIO (`minio/minio`) | `localstack/localstack:3.8.1` S3 service as `objectstore` (MinIO no longer publishes images: Docker Hub and Quay refuse the pull); the `minio` npm client still talks to it; no volume (copies only) |
+| Object store | MinIO (`minio/minio`) | our own S3-compatible server `backend/src/objectstore.js` as service `objectstore`, built from the same image (MinIO no longer publishes images: Docker Hub and Quay refuse the pull, alternatives are ~1 GB); the `minio` npm client talks to it; volume `objects` |
 | Checkout (§6.3) | two-phase reservation, sweeper | one transaction per checkout (order-id lock, variants `FOR UPDATE` in id order, rollback = release); `reserved` stays 0; `reservations` table and `queue/sweeper.js` are a safety net only |
 | Receipt PDF | `pdfkit` | hand-written uncompressed PDF (`pdf/receiptPdf.js`), no dependency |
 | Swiss matching | weighted blossom | exact branch-and-bound `domain/fixtures/pairing.js` (verified against brute force for n <= 10) |
@@ -331,7 +331,7 @@ Responses are built by explicit mapper functions per contract (field order as in
 |---|---|---|---|---|
 | `postgres` | `postgres:16-alpine` | none | — | `pg_isready` |
 | `redis` | `redis:7-alpine` (no persistence, `volatile-lru`, 128 MB) | none | — | `redis-cli ping` |
-| `objectstore` | `localstack/localstack:3.8.1` (replaces MinIO) | none | — | `curl` of `/_localstack/health` for the s3 service |
+| `objectstore` | `nascon-backend:local` running `src/objectstore.js` (replaces MinIO) | none | — | `wget /_health` |
 | `api` | build `./backend` | **8080:8080** | postgres healthy, redis healthy | `wget -qO- http://127.0.0.1:8080/health` |
 | `worker` | build `./backend`, `command: ["node","src/worker.js"]` | none | postgres healthy, redis healthy, objectstore started, api healthy | process-alive (optional heartbeat file) |
 

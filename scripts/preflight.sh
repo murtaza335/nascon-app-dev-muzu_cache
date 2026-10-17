@@ -114,7 +114,7 @@ echo "== Docker images"
 if have docker && docker info >/dev/null 2>&1; then
   for img in postgres:16-alpine redis:7-alpine node:20-alpine python:3.12-slim \
              grafana/k6:0.54.0 selenium/hub:4.24.0 selenium/node-chrome:4.24.0 selenium/node-firefox:4.24.0 \
-             selenium/node-edge:4.24.0 localstack/localstack:3.8.1 rabbitmq:3.13-management-alpine \
+             selenium/node-edge:4.24.0 rabbitmq:3.13-management-alpine \
              nats:2.10-alpine bluenviron/mediamtx:1.9.1 livekit/livekit-server:v1.7.2 binwiederhier/ntfy:v2.11.0 \
              prom/prometheus:v2.54.1 grafana/grafana:11.2.0; do
     if docker image inspect "$img" >/dev/null 2>&1; then ok "image $img"

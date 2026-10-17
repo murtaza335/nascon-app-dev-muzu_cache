@@ -28,8 +28,7 @@ for img in "${IMAGES[@]}"; do
   docker pull -q "$img" || failed+=("$img")
 done
 
-echo "==> localstack/localstack:3.8.1 (S3 object store; MinIO no longer publishes images)"
-docker pull -q "localstack/localstack:3.8.1" || failed+=("localstack:3.8.1")
+# No object-store image to pull: the objectstore service runs from the backend image (MinIO no longer publishes images).
 
 docker images
 if (( ${#failed[@]} )); then
