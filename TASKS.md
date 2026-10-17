@@ -4,6 +4,24 @@ Derived from `docs/IMPLEMENTATION-PLAN.md` (slices), `REQUIREMENTS.md` (contract
 Precedence if sources disagree: spec PDF > REQUIREMENTS > ARCHITECTURE/ADR > AGENTS > legacy docs (AGENTS §2).
 Backend only. Mobile is tracked separately in the plan.
 
+## Status (2026-10-17, end of the first implementation pass)
+
+| Phase | State | Evidence |
+|---|---|---|
+| 0 Platform | Done | health/reset/413/malformed JSON/404 vectors; schema; baseline seed |
+| 1 Auth + RBAC | Done | 85-case probe matrix, security probes, rate limit, ping |
+| 2 Scoring | Done | API-03/06/07, App. A vector 1, projection for all 3 models |
+| 3 Fixtures | Done | 4 formats; property tests; Swiss optimality vs brute force |
+| 4 Leagues + standings | Done | tie-breaks, h2h, NRR, lots vector 2, qualification |
+| 5 Store | Done | burst 20 × 20, PDF text, payment failures, replay |
+| 6 Roster | Done | 8 ordered checks, loan return, audit, history |
+| 7 Offline sync | Done | per-action resolution table, ordering, re-send = duplicate |
+| 8 Production API | Done except P2 | APP-12 (status changes) and APP-20..23 (seasons, rescheduling) are NOT implemented |
+| 9 Queue/worker/realtime | Done | worker verified against an S3 stub; real MinIO image not pulled here |
+| 10 Quality gate | Mostly done | COVERAGE.json 97–100 % per area; static guards; CI updated. **Not done:** cold `docker compose up --build` (sandbox cannot reach registries), APK, push windows, Appendix C sign-off |
+
+Totals at this point: 204 unit tests, 377 API tests (with `SEED_DEMO_DATA=true`; 349 pass + 28 skip with it off).
+
 ## Working rules (token-saving)
 1. **Read only what the task cites.** Open the listed REQUIREMENTS sections by line range, not whole files. Do not re-read files you just edited.
 2. **Ambiguity ladder:** the cited REQUIREMENTS/ARCHITECTURE section → §12.2 open-question default → `docs/spec/nascon26-part1-spec.txt` (grep for the § number) → ask the human. Never guess.
