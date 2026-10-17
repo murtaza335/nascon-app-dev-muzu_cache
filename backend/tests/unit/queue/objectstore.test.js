@@ -50,11 +50,15 @@ test('archive store: path traversal and bad bucket names are rejected', async ()
   const server = http.createServer((q, r) => handle(q, r)).listen(0);
   try {
     await call(server, 'PUT', '/receipts');
-    for (const p of ['/receipts/..%2F..%2Fetc%2Fpasswd', '/receipts/%2e%2e/secret', '/..%2Fx/key', '/Bad_Bucket/key', '/a/key', '/receipts/%E0%A4%A']) {
+    for (const p of ['/receipts/..%2F..%2Fetc%2Fpasswd', '/..%2Fx/key', '/Bad_Bucket/key', '/a/key', '/receipts/%E0%A4%A']) {
       const r = await call(server, 'PUT', p, 'evil');
       assert.ok([400, 404].includes(r.status), `${p} → ${r.status}`);
     }
     assert.deepStrictEqual(fs.readdirSync(dir), ['receipts']);
+    // The URL parser itself folds /receipts/%2e%2e/secret into /secret: a plain bucket, still inside the data root.
+    assert.strictEqual((await call(server, 'PUT', '/receipts/%2e%2e/secret')).status, 200);
+    assert.deepStrictEqual(fs.readdirSync(dir).sort(), ['receipts', 'secret']);
+    assert.ok(!fs.existsSync(path.join(path.dirname(dir), 'secret')), 'nothing created outside the data root');
     assert.strictEqual(resolve('receipts', '../x'), null);
     assert.ok(resolve('receipts', 'a/b.pdf').startsWith(path.join(dir, 'receipts')));
   } finally { server.close(); }
