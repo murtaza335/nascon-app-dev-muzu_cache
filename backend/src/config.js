@@ -25,6 +25,8 @@ module.exports = Object.freeze({
   logLevel: env.LOG_LEVEL || 'info',
   // Secret: never trimmed, never logged. Boot refuses to start without it (index.js).
   day1Salt: env.DAY1_SALT || '',
+  // Explicit secret wins; otherwise lib/jwt.js derives one from the salt (ARCHITECTURE §9).
+  jwtSecret: env.JWT_SECRET || '',
   jwtTtlSeconds: int(env.JWT_TTL_SECONDS, 43200),
   rateLimitMax: int(env.RATE_LIMIT_MAX, 100),
   rateLimitWindowMs: int(env.RATE_LIMIT_WINDOW_MS, 10000),
