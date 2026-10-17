@@ -4,13 +4,21 @@ const { installProcessHandlers } = require('./errors');
 const db = require('./db');
 const cache = require('./cache');
 const { runMigrations } = require('./migrate');
-const { createApp } = require('./app');
+const { createApp } = require('./http/app');
+const { ensureBaseline } = require('./services/reset');
 
 installProcessHandlers();
+
+if (!config.day1Salt) {
+  console.error('[boot] DAY1_SALT is missing or empty; refusing to start');
+  process.exit(1);
+}
 
 async function main() {
   await db.waitForDb();
   await runMigrations();
+  const seeded = await ensureBaseline();
+  console.log(`[boot] baseline ${seeded ? 'seeded' : 'already present'}`);
   cache.connect(); // non-blocking: the API works (BYPASS) while Redis is unavailable
 
   const server = createApp().listen(config.port, '0.0.0.0', () => {

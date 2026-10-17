@@ -43,8 +43,8 @@ behavior and tests exist. This review does not mark MOB/NFR requirements complet
 | FR-2.3-05 | Pinned product showcase | `routes/api/matches.js`, `realtime/ws.js` | `tests/api/test_app_matches.py` | Todo |
 | FR-5.1-01 | 5-tier RBAC policy-as-code | `domain/rbac/matrix.js`, `domain/rbac/policy.js`, `http/middleware/authenticate.js` | `unit/rbac/policy.test.js`, `tests/api/test_rbac_api.py` (65 cells) | Todo |
 | FR-5.1-02 | Tokens + login (API-14, APP-01) | `lib/jwt.js`, `services/auth.js` | `unit/rbac/jwt.test.js`, `tests/api/test_rbac_api.py` | Todo |
-| FR-SYS-01 | Health (API-01) | `routes/health.js` | `tests/api/test_health_api.py` | Todo (current starter differs) |
-| FR-SYS-02 | Reset + baseline (API-02) | `services/reset.js`, `seed/baseline.js` | `tests/api/test_reset_api.py` | Todo |
+| FR-SYS-01 | Health (API-01) | `routes/health.js:GET /health` | `tests/api/test_platform_api.py::test_fr_sys_01_health_exact_body` | Tested |
+| FR-SYS-02 | Reset + baseline (API-02) | `services/reset.js:resetAll`, `seed/baseline.js:seedBaseline` | `tests/api/test_platform_api.py::test_fr_sys_02_*` | Tested |
 | FR-SYS-03 | Rate-limited ping (API-16) | `http/middleware/rateLimit.js` | `tests/api/test_security_api.py` | Todo |
 | FR-OFF-01 | Offline sync (API-17, APP-40) | `domain/sync/resolve.js`, `services/sync.js` | `unit/sync/resolve.test.js`, `tests/api/test_offline_sync_api.py` | Todo |
 | NFR-3 | Concurrency correctness | `services/store.js` | `tests/api/test_checkout_api.py::test_nfr3_burst_20` | Todo |

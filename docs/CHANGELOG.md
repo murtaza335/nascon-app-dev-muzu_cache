@@ -25,3 +25,5 @@ Organizers' written clarifications are also recorded here.
 - Mobile storage: starter AsyncStorage suggestion → spec SQLite/Room/Hive + Keystore.
 - `.gitignore` ignores `*.apk` → spec requires `mobile/release/app-release.apk` committed.
 - Test runner: starter `scripts/run-tests.sh` → spec root `run_tests.sh` + `COVERAGE.json`.
+
+- 2026-10-17: T0 platform retarget implemented (port 8080, spec error envelope, `001_init.sql`, baseline seed, `/health`, `/audit/v1/reset`). `Dockerfile` takes `ARG NODE_IMAGE` (default `node:22-alpine`) so a machine without Docker Hub access can build from a local image. Test helper `assert_error` in `tests/api/conftest.py` now checks the `{error:{code,message,details}}` envelope. Lossless-number capture (`req.lossless`) is deferred to T2.1: `jsonBody` keeps `req.rawBody` instead.

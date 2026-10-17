@@ -1,69 +1,92 @@
 'use strict';
-// REQ-INF-01: the single place that defines the error contract (ADR-004).
-// Every error response: { error_code, message, details? }.
-// If the spec defines another shape, change formatError() only.
+// The single place that defines the error contract (REQUIREMENTS §7, ADR-003).
+// Every non-2xx body: {"error":{"code","message","details"}}; details is always an object.
+
+// Appendix B catalogue plus implementation-only codes. Domain code returns these constants;
+// services throw AppError built from them.
+const E = Object.freeze({
+  VALIDATION_ERROR: { status: 400, code: 'VALIDATION_ERROR', message: 'Request validation failed' },
+  UNKNOWN_EVENT_TYPE: { status: 400, code: 'UNKNOWN_EVENT_TYPE', message: 'Unknown event type for this sport' },
+  INVALID_DISCOUNT_CODE: { status: 400, code: 'INVALID_DISCOUNT_CODE', message: 'Discount code is not valid' },
+  UNAUTHENTICATED: { status: 401, code: 'UNAUTHENTICATED', message: 'Authentication required' },
+  INVALID_CREDENTIALS: { status: 401, code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' },
+  PAYMENT_DECLINED: { status: 402, code: 'PAYMENT_DECLINED', message: 'Payment was declined' },
+  PAYMENT_CAPTURE_FAILED: { status: 402, code: 'PAYMENT_CAPTURE_FAILED', message: 'Payment capture failed' },
+  FORBIDDEN: { status: 403, code: 'FORBIDDEN', message: 'You do not have access to this resource' },
+  SPORT_NOT_FOUND: { status: 404, code: 'SPORT_NOT_FOUND', message: 'Sport not found' },
+  MATCH_NOT_FOUND: { status: 404, code: 'MATCH_NOT_FOUND', message: 'Match not found' },
+  LEAGUE_NOT_FOUND: { status: 404, code: 'LEAGUE_NOT_FOUND', message: 'League not found' },
+  EVENT_NOT_FOUND: { status: 404, code: 'EVENT_NOT_FOUND', message: 'Event not found' },
+  PLAYER_NOT_FOUND: { status: 404, code: 'PLAYER_NOT_FOUND', message: 'Player not found' },
+  SQUAD_NOT_FOUND: { status: 404, code: 'SQUAD_NOT_FOUND', message: 'Squad not found' },
+  VARIANT_NOT_FOUND: { status: 404, code: 'VARIANT_NOT_FOUND', message: 'Variant not found' },
+  CLUB_NOT_FOUND: { status: 404, code: 'CLUB_NOT_FOUND', message: 'Club not found' },
+  TENANT_NOT_FOUND: { status: 404, code: 'TENANT_NOT_FOUND', message: 'Tenant not found' },
+  PRODUCT_NOT_FOUND: { status: 404, code: 'PRODUCT_NOT_FOUND', message: 'Product not found' },
+  ORDER_NOT_FOUND: { status: 404, code: 'ORDER_NOT_FOUND', message: 'Order not found' },
+  ROUTE_NOT_FOUND: { status: 404, code: 'ROUTE_NOT_FOUND', message: 'Route not found' },
+  SPORT_EXISTS: { status: 409, code: 'SPORT_EXISTS', message: 'Sport already exists' },
+  LEAGUE_EXISTS: { status: 409, code: 'LEAGUE_EXISTS', message: 'League already exists' },
+  MATCH_EXISTS: { status: 409, code: 'MATCH_EXISTS', message: 'Match already exists' },
+  DUPLICATE_EVENT_ID: { status: 409, code: 'DUPLICATE_EVENT_ID', message: 'Event id was already used with a different body' },
+  DUPLICATE_ORDER_ID: { status: 409, code: 'DUPLICATE_ORDER_ID', message: 'Order id was already used with a different body' },
+  DUPLICATE_REQUEST_ID: { status: 409, code: 'DUPLICATE_REQUEST_ID', message: 'Request id was already used with a different body' },
+  ILLEGAL_TRANSITION: { status: 409, code: 'ILLEGAL_TRANSITION', message: 'That status change is not allowed' },
+  MATCH_NOT_IN_PROGRESS: { status: 409, code: 'MATCH_NOT_IN_PROGRESS', message: 'Match is not in progress' },
+  TIE_NOT_ALLOWED: { status: 409, code: 'TIE_NOT_ALLOWED', message: 'A tied match cannot end without a winner' },
+  INNINGS_COMPLETE: { status: 409, code: 'INNINGS_COMPLETE', message: 'The innings is already complete' },
+  SERIES_ALREADY_DECIDED: { status: 409, code: 'SERIES_ALREADY_DECIDED', message: 'The series is already decided' },
+  INVALID_COMPENSATION: { status: 409, code: 'INVALID_COMPENSATION', message: 'That event cannot be compensated' },
+  NO_VALID_PAIRING: { status: 409, code: 'NO_VALID_PAIRING', message: 'No valid pairing exists for this round' },
+  OUT_OF_STOCK: { status: 409, code: 'OUT_OF_STOCK', message: 'Not enough stock' },
+  CROSS_TENANT_TRANSFER: { status: 409, code: 'CROSS_TENANT_TRANSFER', message: 'Squads belong to a different tenant' },
+  NOT_IN_SQUAD: { status: 409, code: 'NOT_IN_SQUAD', message: 'Player is not in the given squad' },
+  TRANSFER_WINDOW_CLOSED: { status: 409, code: 'TRANSFER_WINDOW_CLOSED', message: 'The transfer window is closed' },
+  PLAYER_ON_LOAN: { status: 409, code: 'PLAYER_ON_LOAN', message: 'Player is currently on loan' },
+  SQUAD_FULL: { status: 409, code: 'SQUAD_FULL', message: 'Squad is full' },
+  MIN_POSITION_VIOLATION: { status: 409, code: 'MIN_POSITION_VIOLATION', message: 'Squad would fall below the required positions' },
+  SCHEDULE_CONFLICT: { status: 409, code: 'SCHEDULE_CONFLICT', message: 'Schedule conflict' },
+  PAYLOAD_TOO_LARGE: { status: 413, code: 'PAYLOAD_TOO_LARGE', message: 'Request body is too large' },
+  RATE_LIMITED: { status: 429, code: 'RATE_LIMITED', message: 'Too many requests' },
+  INTERNAL_ERROR: { status: 500, code: 'INTERNAL_ERROR', message: 'Internal server error' },
+  SERVICE_UNAVAILABLE: { status: 503, code: 'SERVICE_UNAVAILABLE', message: 'Service is not ready' },
+});
 
 class AppError extends Error {
-  constructor(status, errorCode, message, details) {
-    super(message);
+  constructor(def, details = {}, message) {
+    super(message || def.message);
     this.name = 'AppError';
-    this.status = status;
-    this.errorCode = errorCode;
+    this.status = def.status;
+    this.code = def.code;
     this.details = details;
   }
 }
 
-const badRequest = (message = 'Bad request', details) => new AppError(400, 'BAD_REQUEST', message, details);
-const validationError = (details, message = 'Request validation failed') =>
-  new AppError(400, 'VALIDATION_ERROR', message, details);
-const notFound = (message = 'Resource not found') => new AppError(404, 'NOT_FOUND', message);
-const conflict = (message = 'Resource already exists') => new AppError(409, 'CONFLICT', message);
-const unauthorized = (message = 'Authentication required') => new AppError(401, 'UNAUTHORIZED', message);
-const forbidden = (message = 'Forbidden') => new AppError(403, 'FORBIDDEN', message);
+const appError = (def, details, message) => new AppError(def, details, message);
 
-function formatError(errorCode, message, details) {
-  const body = { error_code: errorCode, message };
-  if (details && details.length) body.details = details;
-  return body;
+// Dotted-path field list, e.g. ["periods.count", "items[0].quantity"].
+const validationError = (fields, message) => new AppError(E.VALIDATION_ERROR, { fields }, message);
+
+function formatError(code, message, details) {
+  const d = details && typeof details === 'object' && !Array.isArray(details) ? details : {};
+  return { error: { code, message, details: d } };
 }
 
-// Postgres SQLSTATE -> AppError. Messages are generic: never leak SQL, tables or constraints.
-function mapPgError(err) {
-  switch (err.code) {
-    case '23505':
-      return conflict('Resource already exists');
-    case '23503':
-      return conflict('Referenced resource does not exist or is still in use');
-    case '23502':
-    case '22P02':
-    case '22003':
-    case '22001':
-    case '23514':
-      return validationError([], 'Invalid value for one or more fields');
-    default:
-      return null;
-  }
-}
-
-function notFoundHandler(req, res) {
-  res.status(404).json(formatError('NOT_FOUND', 'Route not found'));
+function notFoundHandler(req, res, next) {
+  next(new AppError(E.ROUTE_NOT_FOUND));
 }
 
 // eslint-disable-next-line no-unused-vars
 function errorHandler(err, req, res, next) {
-  let appErr = null;
-  if (err instanceof AppError) appErr = err;
-  else if (err && err.type === 'entity.parse.failed') appErr = new AppError(400, 'INVALID_JSON', 'Malformed JSON body');
-  else if (err && err.type === 'entity.too.large') appErr = new AppError(413, 'PAYLOAD_TOO_LARGE', 'Request body too large');
-  else if (err && typeof err.code === 'string' && /^[0-9A-Z]{5}$/.test(err.code)) appErr = mapPgError(err);
-
+  let appErr = err instanceof AppError ? err : null;
   if (!appErr) {
     // Full detail stays server-side only.
-    console.error(`[error] request_id=${req.id || '-'} ${req.method} ${req.originalUrl}`, err);
-    appErr = new AppError(500, 'INTERNAL_ERROR', 'Internal server error');
+    console.error(`[error] request_id=${req.id || '-'} ${req.method} ${req.originalUrl.split('?')[0]}`, err);
+    appErr = new AppError(E.INTERNAL_ERROR);
   }
   if (res.headersSent) return;
-  res.status(appErr.status).json(formatError(appErr.errorCode, appErr.message, appErr.details));
+  if (appErr.headers) for (const [k, v] of Object.entries(appErr.headers)) res.set(k, v);
+  res.status(appErr.status).json(formatError(appErr.code, appErr.message, appErr.details));
 }
 
 // A single bad request must never take the process down.
@@ -72,17 +95,4 @@ function installProcessHandlers() {
   process.on('uncaughtException', (err) => console.error('[uncaughtException]', err));
 }
 
-module.exports = {
-  AppError,
-  badRequest,
-  validationError,
-  notFound,
-  conflict,
-  unauthorized,
-  forbidden,
-  formatError,
-  mapPgError,
-  notFoundHandler,
-  errorHandler,
-  installProcessHandlers,
-};
+module.exports = { E, AppError, appError, validationError, formatError, notFoundHandler, errorHandler, installProcessHandlers };

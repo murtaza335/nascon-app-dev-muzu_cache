@@ -4,9 +4,10 @@ const config = require('./config');
 
 const pool = new Pool({
   connectionString: config.databaseUrl,
-  max: 10,
+  max: config.pgPoolMax,
   connectionTimeoutMillis: 3000,
   idleTimeoutMillis: 30000,
+  statement_timeout: 4000, // keeps every request under the 5 s bound (the reset session raises it)
 });
 
 // An idle client erroring (e.g. Postgres restart) must not crash the process.
@@ -39,4 +40,25 @@ async function ping() {
 
 const query = (text, params) => pool.query(text, params);
 
-module.exports = { pool, query, waitForDb, ping };
+// Runs fn(client) in a transaction; commits on return, rolls back on throw.
+async function withTx(fn) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await fn(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+// Transaction-scoped advisory lock keyed by a string (e.g. "event:evt-1"). Call inside withTx.
+async function advisoryXactLock(client, key) {
+  await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [key]);
+}
+
+module.exports = { pool, query, waitForDb, ping, withTx, advisoryXactLock };

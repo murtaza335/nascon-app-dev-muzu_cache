@@ -1,0 +1,25 @@
+'use strict';
+const express = require('express');
+const { notFoundHandler, errorHandler } = require('../errors');
+const { requestId } = require('./middleware/requestId');
+const { jsonBody } = require('./middleware/jsonBody');
+const healthRoutes = require('../routes/health');
+const resetRoutes = require('../routes/audit/reset');
+
+// Middleware order (ARCHITECTURE §7.1): requestId → bodyLimit/jsonBody → routers → notFound → errorHandler.
+function createApp() {
+  const app = express();
+  app.disable('x-powered-by');
+  app.set('etag', false);
+  app.use(requestId);
+  app.use(jsonBody);
+
+  app.use(healthRoutes);
+  app.use('/audit/v1', resetRoutes);
+
+  app.use(notFoundHandler);
+  app.use(errorHandler);
+  return app;
+}
+
+module.exports = { createApp };

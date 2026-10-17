@@ -75,25 +75,19 @@ def make_cases(valid_payload, fields, ok_status=201, error_code="VALIDATION_ERRO
     return cases
 
 
-def assert_error(resp, status, code=None):
-    """Every error: exact status, JSON content type, {error_code, message}, no leaks."""
+def assert_error(resp, status, code=None, fields=None):
+    """Every error: exact status, JSON, {"error":{code,message,details}}, no leaks (REQUIREMENTS §7)."""
     assert resp.status_code == status, f"expected {status}, got {resp.status_code}: {resp.text}"
     assert resp.headers.get("Content-Type", "").startswith("application/json"), resp.headers
-    body = resp.json()
-    assert isinstance(body.get("error_code"), str) and body["error_code"], body
-    assert isinstance(body.get("message"), str) and body["message"], body
+    err = resp.json()["error"]
+    assert isinstance(err.get("code"), str) and err["code"], err
+    assert isinstance(err.get("message"), str) and err["message"], err
+    assert isinstance(err.get("details"), dict), err
     if code is not None:
-        assert body["error_code"] == code, body
+        assert err["code"] == code, err
+    if fields is not None:
+        assert sorted(err["details"]["fields"]) == sorted(fields), err
     for needle in FORBIDDEN_IN_ERRORS:
         assert needle not in resp.text, f"error body leaks {needle!r}: {resp.text}"
     assert not STACK_FRAME.search(resp.text), f"error body leaks a stack frame: {resp.text}"
-    return body
-
-
-@pytest.fixture
-def created_item(api):
-    resp = api.post("/api/items", json={"name": "fixture item", "description": "made by test", "quantity": 1})
-    assert resp.status_code == 201, resp.text
-    item = resp.json()
-    yield item
-    api.delete(f"/api/items/{item['id']}")
+    return err

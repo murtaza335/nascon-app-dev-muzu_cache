@@ -18,9 +18,9 @@ for arg in "$@"; do
   esac
 done
 
-export BASE_URL="${BASE_URL:-http://localhost:${BACKEND_PORT:-3000}}"
+export BASE_URL="${BASE_URL:-http://localhost:${BACKEND_PORT:-8080}}"
 export SELENIUM_URL="${SELENIUM_URL:-http://localhost:4444}"
-export BROWSER_BASE_URL="${BROWSER_BASE_URL:-http://backend:3000}"
+export BROWSER_BASE_URL="${BROWSER_BASE_URL:-http://backend:8080}"
 export RUN_DESTRUCTIVE=$DESTRUCTIVE
 
 COMPOSE=(docker compose)
