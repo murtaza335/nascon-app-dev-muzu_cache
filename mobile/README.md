@@ -1,17 +1,17 @@
 # NaSCon Sports Mobile
 
-Expo + React Native + strict TypeScript starter. This folder belongs to the existing
-root Git repository; do not initialize a nested repository. Only a placeholder
-screen is implemented.
+Expo + React Native + strict TypeScript Android app. All 21 screen designs are
+implemented as an in-memory preview, using the approved charcoal/olive/lime theme.
+This folder belongs to the existing root Git repository; do not initialize a nested repository.
 
 The documentation review and next screen inventory are in
 [`SCREEN-PLAN.md`](SCREEN-PLAN.md). The existing feature/service layout is retained;
-screen design and functional implementation are the next phase. Canonical
+screen designs are present; service integration is the next phase. Canonical
 structure: [`ARCHITECTURE.md` section 11](../ARCHITECTURE.md#11-client-architecture-mobile-adr-017).
 
 Locked scaffold versions: Expo **54.0.37**, React Native **0.81.5**, React
-**19.1.0**, TypeScript **5.9.3**. Navigation, SQLite, Keychain and NetInfo are
-planned dependencies, not installed capabilities. Use the ADR-017 choices and
+**19.1.0**, TypeScript **5.9.3**. React Navigation is installed; SQLite, Keychain
+and NetInfo remain planned dependencies. Use the ADR-017 choices and
 root dependency approval policy when adding them.
 
 SDK 54 was selected explicitly to reuse this Windows machine's existing
@@ -26,8 +26,8 @@ repeating a clean prebuild.
 
 ```text
 App.tsx                  entry re-export
-src/app/                 app root and future providers
-src/navigation/          future role-aware navigation
+src/app/                 app root, preview state and mock-data adapter
+src/navigation/          typed role-aware navigation and Screen Studio
 src/features/
   auth/ home/            login and role-aware home
   fixtures/ matches/     fixtures, live score, timeline, pinned products
@@ -50,9 +50,41 @@ scripts/                 Windows Android configuration and USB setup
 release/                 final app-release.apk delivery location
 ```
 
-Empty folders are tracked with `.gitkeep`. They reserve responsibility boundaries;
-they do not implement the requirements yet. Navigation, SQLite, secure storage,
-and sync dependencies can be added under ADR-017 when implementing those features.
+Unimplemented service folders retain `.gitkeep` boundaries. Their presence does
+not implement the requirements. SQLite, secure storage and sync remain future work.
+
+## Explore the designs
+
+Open the app, tap **Explore screen designs**, then **Settings → Screen Studio**.
+Fixtures is the starting tab for all five roles. Screen Studio switches role,
+content/loading/empty/error/success presentation, connectivity preview and
+supplied sync outcomes. It lists all 21 screens and gates management previews by
+role. Managers receive a Roster tab; Organizers receive Scoring; Admin management
+is reached through explicit resource context. Account is reachable from Settings
+and Club. Standings rows open team-filtered fixtures.
+
+Data comes through `src/app/previewData.ts:getPreviewData` from the separately
+owned synthetic fixture module. Tenant identity uses its name/logo and a color
+marker; text retains contrast-safe app colors. The shared tokens and components
+are in `src/theme/tokens.ts` and `src/components/ui.tsx`.
+
+Form entry, selectors, confirmations and the cart work locally. Sign-in, scoring,
+registration, checkout, product pinning, PDF actions and Sync explicitly report
+that they are not connected. Preview connectivity is manually selected; it is not
+device network detection. No credentials are sent or tokens stored. No orders,
+events or successful server mutations are fabricated. Cart, URL and preview
+choices reset on restart. Offline preview is not SQLite persistence or an outbox.
+
+Verification commands: `npm run typecheck`, `npm run test:screens` (12 checks),
+`npm run test:mock-data` (6 checks), and
+`npx expo export --platform android --output-dir .expo/ui-review-bundle --max-workers 2`.
+TypeScript, both test suites and the Android Hermes export passed on 2026-10-17.
+Native layout verification remains open: the existing API 37 emulator requires
+4 GB committed RAM and failed to start with approximately 2.3 GB available.
+The native offline Gradle build failed on uncached react-native-screens build
+dependencies; the online retry stalled fetching them and was stopped. No new APK
+was produced. 360×640 dp, landscape, large fonts, TalkBack, keyboard and System Back must still
+be checked in the running Android app. Source checks do not establish those results.
 
 ## Windows commands
 
@@ -113,14 +145,21 @@ USB. Metro forwarding on 8081 does not forward the backend.
 
 ## Later implementation
 
+Initial screen data is available in
+[`tests/fixtures/mockData.ts`](tests/fixtures/mockData.ts). See
+[`MOCK-DATA.md`](MOCK-DATA.md) for imports, the 21-screen mapping, UI states and
+prototype-only contract gaps. Run `npm run test:mock-data` for fixture checks.
+The screen preview consumes this data through the read-only adapter above.
+
 Follow specification sections 8.2-8.6 for screens and judging, section 5.14 for
 offline queue contracts, and NFR-4/NFR-5 for persistence and secure token storage.
 Use the actual backend contract; the root repo's generic port-3000 examples are
 starter documentation. The public API URL is build configuration, not secret
 storage. Never put tokens or `DAY1_SALT` in an Expo public environment variable.
 
-`EXPO_PUBLIC_API_URL` currently supplies only the startup default. The in-app
-server address control required by MOB-01/MOB-10 is still to be implemented.
+`EXPO_PUBLIC_API_URL` supplies the startup default. The in-app server address
+control is a validated, in-memory design preview; runtime transport and durable
+server settings required by MOB-01/MOB-10 remain to be implemented.
 Use `/api/v1` contracts from REQUIREMENTS section 8.2 and parse errors as
 `{error:{code,message,details:{}}}`; validation fields are in `details.fields`.
 

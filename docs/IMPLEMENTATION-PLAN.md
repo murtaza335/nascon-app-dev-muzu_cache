@@ -59,17 +59,20 @@ pytest vectors per slice; `run_tests.sh` + `scripts/coverage-areas.js` → COVER
 
 ### Mobile track (MOB)
 
-Readiness review (2026-10-17): all existing project Markdown reviewed; existing
-Expo feature/service scaffold retained and mapped in ARCHITECTURE §11.
-[Screen inventory and integration gaps](../mobile/SCREEN-PLAN.md) are ready for
-the screen-design phase. Only the placeholder app exists; the navigation shell,
-theme, Settings, API client and remaining mobile deliverables below are pending.
-No timeline or priority changes are implied.
+Readiness/design slice (2026-10-17): root/mobile Markdown reviewed; existing
+feature/service structure retained. User approved the charcoal/olive/lime brief
+and authorized UI-only implementation before backend integration. All 21 screen
+components, typed role-aware navigation, shared theme/controls and Screen Studio
+now exist. Synthetic data from the separate session is connected through a
+read-only display adapter. TypeScript, 12 screen checks, 6 fixture checks and the
+Android Hermes export pass. Native captures remain blocked by emulator RAM.
 
-Screen completeness pass (2026-10-17): the screen plan now enumerates 21 primary
-screens, shared dialogs/selectors, role routes, all MOB-01-12 mappings and a
-separate P2 management backlog. Orders, Order Detail and Account were missing
-from the initial inventory. Follow its design sequence; all screens remain planned.
+These are screen previews, not completed functional slices: Keychain login,
+transport, SQLite cache/outbox, realtime, Sync, receipt PDFs and APK acceptance
+remain pending. The table below remains the functional delivery sequence;
+original project priorities, contracts and open-question defaults are unchanged.
+See [screen plan](../mobile/SCREEN-PLAN.md), [approved brief](../mobile/DESIGN-BRIEF.md)
+and [preview instructions](../mobile/README.md).
 
 | Time | Deliverable |
 |---|---|
