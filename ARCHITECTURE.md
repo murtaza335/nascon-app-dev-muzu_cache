@@ -330,7 +330,7 @@ Responses are built by explicit mapper functions per contract (field order as in
 |---|---|---|---|---|
 | `postgres` | `postgres:16-alpine` | none | — | `pg_isready` |
 | `redis` | `redis:7-alpine` (no persistence, `volatile-lru`, 128 MB) | none | — | `redis-cli ping` |
-| `minio` | `minio/minio:<pinned>` | none | — | `mc ready local` or a `curl` liveness check (verify which the image provides) |
+| `minio` | `quay.io/minio/minio:<pinned>` | none | — | `mc ready local` or a `curl` liveness check (verify which the image provides) |
 | `api` | build `./backend` | **8080:8080** | postgres healthy, redis healthy | `wget -qO- http://127.0.0.1:8080/health` |
 | `worker` | build `./backend`, `command: ["node","src/worker.js"]` | none | postgres healthy, redis healthy, minio healthy, api healthy | process-alive (optional heartbeat file) |
 

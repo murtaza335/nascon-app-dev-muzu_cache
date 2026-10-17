@@ -34,7 +34,8 @@ services:
 
   minio:
     # Receipt PDF archive (worker only). The API does not depend on it, so /health is never delayed by object storage.
-    image: minio/minio:RELEASE.2024-09-22T00-33-43Z
+    # quay.io: Docker Hub no longer serves this tag ("pull access denied").
+    image: quay.io/minio/minio:RELEASE.2024-09-22T00-33-43Z
     command: ["server", "/data"]
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}

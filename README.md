@@ -37,7 +37,7 @@ For the desk check (judge phone), add demo fixtures, rosters and products first:
 | worker | same image | none | outbox relay → Redis Stream, consumer, receipt archive to MinIO, reservation sweeper |
 | postgres | `postgres:16-alpine` | none | source of truth, volume `pgdata` |
 | redis | `redis:7-alpine` | none | cache-aside for `/api/v1` reads + the `domain-events` stream |
-| minio | `minio/minio:RELEASE.2024-09-22T00-33-43Z` | none | bucket `receipts`, volume `miniodata` |
+| minio | `quay.io/minio/minio:RELEASE.2024-09-22T00-33-43Z` (Docker Hub no longer carries this tag) | none | bucket `receipts`, volume `miniodata` |
 
 ## Demo accounts (password `Nascon@26`, recreated by every startup and `/reset`)
 
