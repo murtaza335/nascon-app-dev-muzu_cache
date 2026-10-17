@@ -1,0 +1,7 @@
+pytest
+requests
+selenium==4.24.*
+Appium-Python-Client
+allure-pytest
+pytest-html
+pytest-timeout

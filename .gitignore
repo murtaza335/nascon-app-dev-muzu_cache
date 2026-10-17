@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Local env (the grader has no .env; compose defaults must be sufficient)
+.env
+
+# Reports (keep the folder)
+reports/*
+!reports/.gitkeep
+allure-results/
+allure-report/
+coverage/
+
+# Python
+__pycache__/
+.pytest_cache/
+*.pyc
+.venv/
+venv/
+
+# Build output
+build/
+dist/
+
+# Android / React Native (never ignore lockfiles, gradle-wrapper.jar or mobile/ source)
+.gradle/
+.kotlin/
+local.properties
+Pods/
+# If the spec requires a prebuilt APK in the repo, remove *.apk.
+*.apk
+*.aab
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+*.log

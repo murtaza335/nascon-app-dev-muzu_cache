@@ -1,0 +1,8 @@
+node_modules
+.git
+reports
+tests
+mobile
+docs
+*.md
+.env

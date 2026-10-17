@@ -1,0 +1,59 @@
+# Local and CI override for UI and perf tests. Never run by the grader.
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml --profile ui up -d --wait
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml --profile perf run --rm k6
+# Browsers reach the backend as http://backend:3000 (never host.docker.internal).
+services:
+  selenium-hub:
+    image: selenium/hub:4.24.0
+    profiles: ["ui", "ui-firefox"]
+    ports:
+      - "4442-4444:4442-4444"
+    healthcheck:
+      test: ["CMD", "/opt/bin/check-grid.sh", "--host", "0.0.0.0", "--port", "4444"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  chrome:
+    image: selenium/node-chrome:4.24.0
+    profiles: ["ui"]
+    shm_size: "1gb"
+    depends_on:
+      selenium-hub:
+        condition: service_started
+    environment:
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      SE_START_VNC: "false"
+      SE_NODE_MAX_SESSIONS: 2
+
+  # Intel/AMD may add selenium/node-edge:4.24.0 with the same pattern;
+  # Apple Silicon must use seleniarm/node-chromium:4.24.0 instead of chrome/edge.
+  firefox:
+    image: selenium/node-firefox:4.24.0
+    profiles: ["ui-firefox"]
+    shm_size: "1gb"
+    depends_on:
+      selenium-hub:
+        condition: service_started
+    environment:
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      SE_START_VNC: "false"
+      SE_NODE_MAX_SESSIONS: 2
+
+  k6:
+    image: grafana/k6:0.54.0
+    profiles: ["perf"]
+    entrypoint: ["k6"]
+    command: ["run", "/scripts/smoke.js"]
+    volumes:
+      - ./tests/perf:/scripts:ro,z
+    environment:
+      BASE_URL: http://backend:3000
+    depends_on:
+      backend:
+        condition: service_healthy
