@@ -140,6 +140,7 @@ CREATE TABLE roster_audit (
   who           text NOT NULL,
   occurred_at   timestamptz NOT NULL,
   why           text NOT NULL,
+  loan_end_date date,           -- loans only (not exposed)
   loan_audit_id text            -- audit_id of the loan this return belongs to
 );
 CREATE UNIQUE INDEX roster_audit_loan_return_uq ON roster_audit (loan_audit_id) WHERE action = 'loan_return';

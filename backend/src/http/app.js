@@ -10,6 +10,7 @@ const eventsRoutes = require('../routes/audit/events');
 const leaguesRoutes = require('../routes/audit/leagues');
 const fixturesRoutes = require('../routes/audit/fixtures');
 const storeRoutes = require('../routes/audit/store');
+const rosterRoutes = require('../routes/audit/roster');
 const rbacRoutes = require('../routes/audit/rbac');
 const pingRoutes = require('../routes/api/ping');
 const { rateLimit } = require('./middleware/rateLimit');
@@ -30,6 +31,7 @@ function createApp() {
   app.use('/audit/v1', leaguesRoutes);
   app.use('/audit/v1', fixturesRoutes);
   app.use('/audit/v1', storeRoutes);
+  app.use('/audit/v1', rosterRoutes);
   app.use('/api/v1', rateLimit, pingRoutes);
 
   app.use(notFoundHandler);

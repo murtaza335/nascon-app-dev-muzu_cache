@@ -31,10 +31,10 @@ behavior and tests exist. This review does not mark MOB/NFR requirements complet
 | FR-1.4-01 | Standings (API-08) | `domain/standings/{table,tiebreak,qualification,nrr,index}.js`, `lib/pyround.js`, `services/standings.js:getStandings` | `unit/standings/*.test.js`, `tests/api/test_standings_api.py` | Tested |
 | FR-2.1-01 | Club profile | `services/clubs.js`, `routes/api/clubs.js` | `tests/api/test_app_clubs.py` | Todo |
 | FR-2.1-02 | Tenant branding + isolation | `seed/baseline.js`, `domain/rbac/policy.js` | `tests/api/test_rbac_api.py` | Todo |
-| FR-2.2-01 | Roster setup (API-09) | `services/roster.js`, `routes/audit/roster.js` | `tests/api/test_roster_api.py` | Todo |
-| FR-2.2-02 | Transfer/loan/release checks (API-10) | `domain/roster/transferRules.js` | `unit/roster/transferRules.test.js`, `tests/api/test_roster_api.py` | Todo |
-| FR-2.2-03 | Loan auto-return | `domain/roster/loanReturn.js` | `unit/roster/loanReturn.test.js` | Todo |
-| FR-2.2-04 | Audit trail + history (API-11) | `repos/roster.js`, `routes/audit/roster.js` | `tests/api/test_roster_api.py` | Todo |
+| FR-2.2-01 | Roster setup (API-09) | `domain/roster/setupSchema.js`, `services/roster.js:setup`, `routes/audit/roster.js` | `tests/api/test_roster_api.py::test_fr_2_2_01_*` | Tested |
+| FR-2.2-02 | Transfer/loan/release checks (API-10) | `domain/roster/transferRules.js:decide`, `services/roster.js:transfer` | `unit/roster/roster.test.js`, `tests/api/test_roster_api.py::test_fr_2_2_02_*` | Tested |
+| FR-2.2-03 | Loan auto-return | `domain/roster/loanReturn.js:dueReturns`, `services/roster.js:materializeReturns` | `unit/roster/roster.test.js`, `tests/api/test_roster_api.py::test_fr_2_2_03_*` | Tested |
+| FR-2.2-04 | Audit trail + history (API-11) | `repos/roster.js`, `services/roster.js:history`, `domain/roster/registrationState.js:squadAsOf` | `tests/api/test_roster_api.py::test_fr_2_2_04_*` | Tested |
 | FR-2.2-05 | Add player, roles | `routes/api/roster.js` | `tests/api/test_app_roster.py` | Todo |
 | FR-2.3-01 | Catalogue, variants, price schedules, discounts | `domain/store/pricing.js:effectivePrice`, `repos/store.js` (catalogue routes APP-50 pending) | `unit/store/store.test.js` | Done (code); APP-50/51 pending |
 | FR-2.3-02 | Checkout + receipt + PDF (API-12) | `services/store.js:checkout`, `domain/store/*.js`, `pdf/receiptPdf.js:renderReceipt` | `unit/store/store.test.js`, `tests/api/test_checkout_api.py` | Tested |

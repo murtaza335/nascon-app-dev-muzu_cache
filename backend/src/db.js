@@ -4,6 +4,8 @@ const config = require('./config');
 
 // bigint (money in paisa, serial ids) stays far below 2^53, so return numbers instead of strings.
 types.setTypeParser(20, (v) => Number(v));
+// DATE columns stay 'YYYY-MM-DD' strings (no timezone shifting).
+types.setTypeParser(1082, (v) => v);
 
 const pool = new Pool({
   connectionString: config.databaseUrl,
