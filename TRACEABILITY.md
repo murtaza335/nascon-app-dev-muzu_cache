@@ -52,6 +52,6 @@ behavior and tests exist. This review does not mark MOB/NFR requirements complet
 | NFR-5 | Security | `lib/jwt.js`, `http/middleware/*`, `domain/rbac/*`, mobile `src/services/auth/session.ts` (planned) | `tests/api/test_security_api.py`, `tests/api/test_rbac_api.py` | Todo |
 | NFR-7 | Reproducibility | `docker-compose.yml`, `backend/src/index.js` | CI cold start (`.github/workflows/ci.yml`) | Todo |
 | NFR-PERF-01 | Latency bounds | all | `tests/perf/smoke.js`, timing asserts in pytest | Todo |
-| NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js` | `unit/scoring/signature.test.js` (App. A vector 1) | Todo |
+| NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js:sign` | `unit/scoring/signature.test.js` (App. A vector 1) | Tested |
 | MOB-01…12 | Mobile screens/offline | `mobile/src/**` | desk-check script, optional `tests/e2e-mobile` | Todo |
 | DEL-01…08 | Deliverables | repo root files | Appendix C checklist (REQUIREMENTS §11) | Todo |

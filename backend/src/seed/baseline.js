@@ -1,6 +1,8 @@
 'use strict';
 // Baseline data (REQUIREMENTS §8.1 API-02). This is the ONLY module where sport and event names may appear (FR-1.1-05).
 const { demoPasswordHash } = require('./passwords');
+const { validateSport } = require('../domain/scoring/sportSchema');
+const { insertSport } = require('../repos/sports');
 
 const DEFAULT_TIE_BREAK = ['h2h_points', 'h2h_diff', 'overall_diff', 'scored', 'fair_play', 'draw_lots'];
 
@@ -104,8 +106,10 @@ async function seedBaseline(client, { seed = DEFAULT_SEED, stock = {} } = {}) {
   const q = (text, params) => client.query(text, params);
 
   for (const s of SPORTS) {
-    await q('INSERT INTO sports (sport_id, name, scoring_model, config, is_seed) VALUES ($1,$2,$3,$4,true)',
-      [s.sport_id, s.name, s.scoring_model, JSON.stringify(s.config)]);
+    // Same validation and normalization as POST /audit/v1/sports (FR-1.1-02).
+    const r = validateSport({ sport_id: s.sport_id, ...s.config });
+    if (!r.ok) throw new Error(`seed sport ${s.sport_id} is invalid: ${JSON.stringify(r.details)}`);
+    await insertSport(client, r.value, true);
   }
   for (const t of TENANTS) {
     await q('INSERT INTO tenants (tenant_id, name, logo_url, colors) VALUES ($1,$2,$3,$4)',

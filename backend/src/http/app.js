@@ -5,6 +5,7 @@ const { requestId } = require('./middleware/requestId');
 const { jsonBody } = require('./middleware/jsonBody');
 const healthRoutes = require('../routes/health');
 const resetRoutes = require('../routes/audit/reset');
+const sportsRoutes = require('../routes/audit/sports');
 const rbacRoutes = require('../routes/audit/rbac');
 const pingRoutes = require('../routes/api/ping');
 const { rateLimit } = require('./middleware/rateLimit');
@@ -20,6 +21,7 @@ function createApp() {
   app.use(healthRoutes);
   app.use('/audit/v1', resetRoutes);
   app.use('/audit/v1', rbacRoutes);
+  app.use('/audit/v1', sportsRoutes);
   app.use('/api/v1', rateLimit, pingRoutes);
 
   app.use(notFoundHandler);
