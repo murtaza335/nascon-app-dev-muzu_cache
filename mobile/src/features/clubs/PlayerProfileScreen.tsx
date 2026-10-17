@@ -12,7 +12,7 @@ export function PlayerProfileScreen() {
   const canEdit=p.role==='super_admin'||(p.role==='player'&&id===p.data.user?.player_id)||(p.role==='club_manager'&&!!player&&player.club_id===p.data.user?.club_id);
   const [edit,setEdit]=useState(false); const [name,setName]=useState(player?.name || ''); const [position,setPosition]=useState(player?.position || '');
   useEffect(()=>{if(id)void p.fetchHistory(id);},[id,p.data.lastUpdated]);
-  return <Screen title="Player profile" back stateful><View style={{alignItems:'center',gap:16,paddingVertical:16}}><Avatar name={player?.name} size={76}/><T variant="heading">{player?.name || 'Player profile'}</T><T color={c.secondary}>{player?.position || 'Player details will appear here'}</T>{!!player?.role && <Badge label={humanize(player.role)}/>}{!!player?.on_loan && <Badge label="On loan" tone="info"/>}</View>
+  return <Screen title="Player profile" back stateful skeleton="profile"><View style={{alignItems:'center',gap:16,paddingVertical:16}}><Avatar name={player?.name} size={76}/><T variant="heading">{player?.name || 'Player profile'}</T><T color={c.secondary}>{player?.position || 'Player details will appear here'}</T>{!!player?.role && <Badge label={humanize(player.role)}/>}{!!player?.on_loan && <Badge label="On loan" tone="info"/>}</View>
     {canEdit&&<Button label="Edit player details" kind="secondary" onPress={()=>{setName(player?.name||'');setPosition(player?.position||'');setEdit(true);}}/>}
     <Section title="Registration"><Card><Row title="Current squad" detail={player?.squad_id || 'Not available'}/><View style={ui.divider}/><Row title="Registration status" detail={player ? player.on_loan?'Loan registration':'Club registration':'Awaiting player information'}/></Card></Section>
 

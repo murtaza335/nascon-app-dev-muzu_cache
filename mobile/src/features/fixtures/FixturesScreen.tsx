@@ -1,20 +1,20 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useApp } from '../../app/AppContext';
-import { Avatar, Badge, Button, Card, Chip, dateLabel, Empty, humanize, Screen, Select, T, ui } from '../../components/ui';
+import { Avatar, Badge, Button, Card, Chip, dateLabel, Empty, humanize, Screen, Select, T, Tap, ui } from '../../components/ui';
 import { Icon } from '../../components/Icon';
 import type { AppNavigation, TabParams } from '../../navigation/routes';
 import type { Fixture } from '../../types/models';
 import { colors as c } from '../../theme/tokens';
 export function FixtureRow({ match }: { match: Fixture }) {
   const n = useNavigation<AppNavigation>(); const p = useApp();
-  return <Pressable accessibilityRole="button" accessibilityLabel={`${match.home_name || match.home_team_id} versus ${match.away_name || match.away_team_id}, ${humanize(match.status)}. Open match`} onPress={() => n.navigate('MatchDetail', { matchId: match.match_id })} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
+  return <Tap label={`${match.home_name || match.home_team_id} versus ${match.away_name || match.away_team_id}, ${humanize(match.status)}. Open match`} onPress={() => n.navigate('MatchDetail', { matchId: match.match_id })}>
     <Card><View style={[ui.between, { flexWrap: 'wrap' }]}><Badge label={`${p.connection === 'offline' ? 'Saved · ' : ''}${humanize(match.status)}`} tone={match.status === 'in_progress' ? 'success' : 'neutral'} /><T variant="caption" color={c.muted}>{match.scheduled_at ? dateLabel(match.scheduled_at) : 'Time TBC'}</T></View>
       {[{ name: match.home_name || match.home_team_id, score: match.score.home }, { name: match.away_name || match.away_team_id, score: match.score.away }].map((team, i) => <View key={i} style={ui.row}><Avatar name={team.name} size={36} /><T variant="strong" style={ui.grow}>{team.name}</T><T variant="title" style={{ fontVariant: ['tabular-nums'] }}>{team.score ?? '—'}</T></View>)}
       <View style={ui.between}><T variant="caption" color={c.muted} style={ui.grow}>{match.venue || 'Venue to be confirmed'}</T><Icon name="next" size={18} /></View>
     </Card>
-  </Pressable>;
+  </Tap>;
 }
 // MOB-02/11: data remains external; no server requests in the screen layer.
 export function FixturesScreen() {

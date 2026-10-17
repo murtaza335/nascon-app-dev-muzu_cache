@@ -1,11 +1,13 @@
-import { ReactNode, useState } from 'react';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ReactNode, useEffect, useState } from 'react';
+import { ActivityIndicator, Animated, Image, KeyboardAvoidingView, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useApp } from '../app/AppContext';
 import type { AppNavigation } from '../navigation/routes';
-import { colors as c, radius, type } from '../theme/tokens';
+import { colors as c, elevation, motion, radius, type } from '../theme/tokens';
 import { Icon, IconName } from './Icon';
+import { Frost, ProgressBar, SkeletonLayout, SkeletonScreen, usePresence, useScalePress } from './motion';
+export { ProgressBar, Skeleton, SkeletonScreen } from './motion';
 
 const makeStyles = () => StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 }, between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
@@ -70,10 +72,62 @@ export function Select({ label, value, options, onChange, placeholder = 'Choose 
   const [open, setOpen] = useState(false);
   return <View style={{ gap: 8 }}><T variant="label">{label}</T><Pressable accessibilityRole="button" accessibilityLabel={`${label}: ${options.find(x => x.value === value)?.label || placeholder}`} onPress={() => setOpen(true)} style={[ui.between, { minHeight: 56, padding: 14, borderRadius: 12, backgroundColor: c.surface, borderWidth: 1, borderColor: c.outline }]}><T color={value ? c.text : c.muted} style={ui.grow}>{options.find(x => x.value === value)?.label || placeholder}</T><Icon name="down" size={20} /></Pressable><Sheet title={label} open={open} onClose={() => setOpen(false)}>{options.length ? options.map(x => <Row key={x.value} title={x.label} onPress={() => { onChange(x.value); setOpen(false); }} trailing={value === x.value ? <Icon name="check" color={c.accent} /> : undefined} />) : <Empty title="No options available" body="There are no available choices for this selection." />}</Sheet></View>;
 }
+const shadow = (opacity: number, blur: number, y: number) => ({ shadowColor: '#000', shadowOpacity: opacity, shadowRadius: blur, shadowOffset: { width: 0, height: y } });
+/** Bottom sheet: slides over a frosted backdrop on a raised surface with a hairline edge, grabber and shadow. */
 export function Sheet({ title, open, onClose, children }: { title: string; open: boolean; onClose: () => void; children: ReactNode }) {
-  return <Modal visible={open} animationType="none" transparent onRequestClose={onClose}><View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: '#000000B3' }}><Pressable accessibilityLabel="Dismiss dialog" accessibilityRole="button" onPress={onClose} style={{ flex: 1 }} /><SafeAreaView edges={['bottom']} style={{ maxHeight: '88%', backgroundColor: c.raised, borderTopLeftRadius: 24, borderTopRightRadius: 24 }}><View accessibilityViewIsModal style={{ padding: 20, gap: 12, flexShrink: 1 }}><View style={ui.between}><T variant="section" accessibilityRole="header" style={ui.grow}>{title}</T><IconButton name="close" label={`Close ${title}`} onPress={onClose} /></View><ScrollView keyboardShouldPersistTaps="handled" style={{ flexShrink: 1 }} contentContainerStyle={{ gap: 16, paddingBottom: 24 }}>{children}</ScrollView></View></SafeAreaView></View></Modal>;
+  const { mounted, progress } = usePresence(open);
+  return <Modal visible={mounted} animationType="none" transparent statusBarTranslucent navigationBarTranslucent onRequestClose={onClose}><View style={{ flex: 1, justifyContent: 'flex-end' }}>
+    <Frost progress={progress} /><Pressable accessibilityLabel="Dismiss dialog" accessibilityRole="button" onPress={onClose} style={{ flex: 1 }} />
+    <Animated.View style={{ maxHeight: '88%', transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [480, 0] }) }] }}><SafeAreaView edges={['bottom']} style={[{ maxHeight: '100%', backgroundColor: c.overlay, borderTopLeftRadius: radius.sheet, borderTopRightRadius: radius.sheet, borderWidth: 1, borderBottomWidth: 0, borderColor: c.overlayEdge, elevation: elevation.sheet }, shadow(0.3, 24, -6)]}>
+      <View style={{ alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: c.outline, marginTop: 10 }} />
+      <View accessibilityViewIsModal style={{ paddingHorizontal: 20, paddingTop: 8, gap: 12, flexShrink: 1 }}><View style={ui.between}><T variant="section" accessibilityRole="header" style={ui.grow}>{title}</T><IconButton name="close" label={`Close ${title}`} onPress={onClose} /></View><View style={ui.divider} /><ScrollView keyboardShouldPersistTaps="handled" style={{ flexShrink: 1 }} contentContainerStyle={{ gap: 16, paddingBottom: 24 }}>{children}</ScrollView></View>
+    </SafeAreaView></Animated.View>
+  </View></Modal>;
 }
-export function Screen({ title, subtitle, back = false, children, stateful = true, showStatus = true, action }: { title: string; subtitle?: string; back?: boolean; children: ReactNode; stateful?: boolean; showStatus?: boolean; action?: ReactNode }) {
+/** Centered alert for short, consequential decisions; scales in over the frosted backdrop. */
+export function Dialog({ title, body, open, onClose, children, tone = 'neutral' }: { title: string; body?: string; open: boolean; onClose: () => void; children?: ReactNode; tone?: Tone }) {
+  const { mounted, progress } = usePresence(open); const [fg, bg] = toneColors()[tone];
+  return <Modal visible={mounted} animationType="none" transparent statusBarTranslucent navigationBarTranslucent onRequestClose={onClose}><View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
+    <Frost progress={progress} /><Pressable accessibilityLabel="Dismiss dialog" accessibilityRole="button" onPress={onClose} style={StyleSheet.absoluteFill} />
+    <Animated.View accessibilityViewIsModal style={[{ backgroundColor: c.overlay, borderRadius: 24, borderWidth: 1, borderColor: c.overlayEdge, padding: 24, gap: 16, elevation: elevation.dialog, opacity: progress, transform: [{ scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] }) }] }, shadow(0.35, 28, 10)]}>
+      {tone !== 'neutral' && <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}><Icon name={tone === 'success' ? 'check' : tone === 'error' ? 'close' : 'clock'} color={fg} /></View>}
+      <T variant="section" accessibilityRole="header">{title}</T>{!!body && <T color={c.secondary}>{body}</T>}{children}
+    </Animated.View>
+  </View></Modal>;
+}
+/** Snackbar on the inverse surface so it never blends into cards; slides up and auto-dismisses. */
+export function Toast({ message, onDismiss, action, onAction, bottom = 88 }: { message: string | null; onDismiss: () => void; action?: string; onAction?: () => void; bottom?: number }) {
+  const [shown, setShown] = useState(message); const { mounted, progress } = usePresence(!!message); const insets = useSafeAreaInsets();
+  useEffect(() => { if (message) setShown(message); }, [message]);
+  useEffect(() => { if (!message) return; const timer = setTimeout(onDismiss, action ? motion.toast * 1.6 : motion.toast); return () => clearTimeout(timer); }, [message, action]);
+  if (!mounted || !shown) return null;
+  return <Animated.View accessibilityLiveRegion="polite" accessibilityRole="alert" style={[{ position: 'absolute', left: 16, right: 16, bottom: Math.max(insets.bottom, 16) + bottom, flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 16, paddingRight: 4, paddingVertical: 4, minHeight: 56, borderRadius: 14, backgroundColor: c.inverse, elevation: elevation.toast, opacity: progress, transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }] }, shadow(0.25, 12, 4)]}>
+    <T color={c.onInverse} style={[ui.grow, { paddingVertical: 10 }]}>{shown}</T>
+    {!!action && !!onAction && <Pressable accessibilityRole="button" accessibilityLabel={action} onPress={onAction} style={{ minHeight: 48, paddingHorizontal: 12, justifyContent: 'center' }}><T variant="strong" color={c.onInverse} style={{ textDecorationLine: 'underline' }}>{action}</T></Pressable>}
+    <Pressable accessibilityRole="button" accessibilityLabel="Dismiss message" onPress={onDismiss} style={{ minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}><Icon name="close" color={c.onInverse} size={20} /></Pressable>
+  </Animated.View>;
+}
+/**
+ * Blocking overlay for user-started work that must not be interrupted (sign-in, checkout, saving). It appears only after
+ * a short delay so fast actions never flash, and frosts the screen so it is obvious that input is paused.
+ */
+export function LoadingOverlay({ label }: { label: string | null }) {
+  const [late, setLate] = useState(false); const [shown, setShown] = useState(label);
+  useEffect(() => { if (!label) { setLate(false); return; } setShown(label); const timer = setTimeout(() => setLate(true), motion.overlayDelay); return () => clearTimeout(timer); }, [label]);
+  const { mounted, progress } = usePresence(!!label && late);
+  return <Modal visible={mounted} animationType="none" transparent statusBarTranslucent navigationBarTranslucent onRequestClose={() => {}}><View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+    <Frost progress={progress} />
+    <Animated.View accessibilityLiveRegion="assertive" accessibilityViewIsModal style={[{ minWidth: 220, maxWidth: 320, alignItems: 'center', gap: 16, padding: 28, borderRadius: 24, backgroundColor: c.overlay, borderWidth: 1, borderColor: c.overlayEdge, elevation: elevation.dialog, opacity: progress, transform: [{ scale: progress.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }, shadow(0.35, 28, 10)]}>
+      <ActivityIndicator size="large" color={c.accent} accessibilityLabel={shown || 'Working'} /><T variant="strong" style={{ textAlign: 'center' }}>{shown}</T><T variant="caption" color={c.secondary} style={{ textAlign: 'center' }}>Please keep the app open.</T>
+    </Animated.View>
+  </View></Modal>;
+}
+/** Pressable card surface with scale feedback and a ripple. */
+export function Tap({ children, onPress, label, style }: { children: ReactNode; onPress: () => void; label: string; style?: StyleProp<ViewStyle> }) {
+  const press = useScalePress();
+  return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} onPressIn={press.onPressIn} onPressOut={press.onPressOut} android_ripple={{ color: '#74806A33', foreground: true }} style={[{ borderRadius: radius.card, overflow: 'hidden' }, style]}><Animated.View style={press.style}>{children}</Animated.View></Pressable>;
+}
+export function Screen({ title, subtitle, back = false, children, stateful = true, showStatus = true, action, skeleton = 'cards' }: { title: string; subtitle?: string; back?: boolean; children: ReactNode; stateful?: boolean; showStatus?: boolean; action?: ReactNode; skeleton?: SkeletonLayout }) {
   const n = useNavigation<AppNavigation>();
   const p = useApp();
   const loading = p.refreshing && !p.data.lastUpdated;
@@ -82,10 +136,11 @@ export function Screen({ title, subtitle, back = false, children, stateful = tru
     {!back && showStatus && p.data.tenant && <View style={{ borderLeftWidth: 3, borderLeftColor: /^#[0-9a-f]{6}$/i.test(p.data.tenant.colors?.primary || '') ? p.data.tenant.colors!.primary : c.accent, paddingLeft: 6 }}><Avatar name={p.data.tenant.name} uri={p.data.tenant.logo_url} size={32} /></View>}
     <View style={[ui.grow, { paddingLeft: back ? 0 : 8, gap: 2 }]}><T variant="title" accessibilityRole="header">{title}</T>{Boolean(subtitle || (!back && showStatus && p.data.tenant?.name)) && <T variant="caption" color={c.muted}>{subtitle || p.data.tenant?.name}</T>}</View>
     {action || (title !== 'Settings' && <IconButton name="settings" label="Open settings" onPress={() => n.navigate('Settings')} />)}
-  </View>{showStatus && <Pressable accessibilityRole="button" accessibilityLabel={`${p.connection}. Open sync status`} onPress={() => n.navigate('SyncStatus')} style={[ui.between, { minHeight: 48, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: p.connection === 'offline' ? c.warningBg : c.background }]}><View style={[ui.row, ui.grow]}><View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: p.connection === 'offline' ? c.warning : c.accent }} /><T variant="label" color={p.connection === 'offline' ? c.warning : c.secondary} style={ui.grow}>{p.connection === 'offline' ? 'Offline · Saved on device' : p.connection === 'syncing' ? 'Syncing pending work' : 'Online · Mock service'}</T></View><Icon name="next" size={18} /></Pressable>}
+  </View>{showStatus && <Pressable accessibilityRole="button" accessibilityLabel={`${p.connection}. Open sync status`} onPress={() => n.navigate('SyncStatus')} style={[ui.between, { minHeight: 48, paddingHorizontal: 20, paddingVertical: 8, backgroundColor: p.connection === 'offline' ? c.warningBg : c.background }]}><View style={[ui.row, ui.grow]}><View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: p.connection === 'offline' ? c.warning : c.accent }} /><T variant="label" color={p.connection === 'offline' ? c.warning : c.secondary} style={ui.grow}>{p.connection === 'offline' ? 'Offline · Saved on device' : p.connection === 'syncing' ? 'Syncing pending work' : 'Online · Up to date'}</T></View><Icon name="next" size={18} /></Pressable>}
+    <ProgressBar active={p.refreshing && !loading} />
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScrollView refreshControl={<RefreshControl refreshing={p.refreshing} onRefresh={()=>void p.refresh()} tintColor={c.accent} colors={[c.accent]} />} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets contentContainerStyle={{ padding: 16, gap: 24, flexGrow: 1, paddingBottom: 40 }}>
       {Boolean(p.resourceError) && <><Message title="Refresh failed" description={p.resourceError} tone="error"/><Button label="Retry refresh" kind="secondary" onPress={()=>void p.refresh()}/></>}
-      {stateful && loading ? <View style={{ gap: 16, paddingVertical: 32 }}><ActivityIndicator color={c.accent} accessibilityLabel="Loading information"/><T color={c.secondary}>Loading your information�</T></View> : children}
+      {stateful && loading ? <SkeletonScreen layout={skeleton} /> : children}
 
     </ScrollView></KeyboardAvoidingView></SafeAreaView>;
 }

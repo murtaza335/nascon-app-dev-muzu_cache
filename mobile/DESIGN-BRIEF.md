@@ -61,6 +61,9 @@ with solid surface tones; keep body text on a predictable background.
 | `background` | `#11150F` | Main screen canvas. |
 | `surface` | `#1C2118` | Cards, input backgrounds and navigation surface. |
 | `surfaceRaised` | `#262D21` | Sheets, selected containers and dialogs. |
+| `overlay` / `overlayEdge` | `#262C27` / `#4A5548` (light `#FFFFFF` / `#D5DCCD`) | Sheets, dialogs and the loading overlay: raised tone, hairline edge and elevation so overlays read above content. |
+| `scrim` + `frost` | translucent | Frosted backdrop behind every overlay (dim + tinted veil; no native blur). |
+| `inverse` / `onInverse` | `#E6EBE2` / `#1B2117` (light inverted) | Toasts/snackbars. |
 | `surfaceOlive` | `#202918` | Quiet context/brand areas. |
 | `divider` | `#3B4533` | Decorative separators only; not a control's sole boundary. |
 | `outline` | `#74806A` | Visible input/control boundary. |

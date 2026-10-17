@@ -12,8 +12,8 @@ export function MatchDetailScreen() {
   const canScore = p.role === 'super_admin' || (p.role === 'league_organizer' && !!match && !!p.data.user?.league_ids?.includes(match.league_id));
   const events = [...(match?.events || [])].sort((a,b) => a.sequence - b.sequence);
   useEffect(()=>{if(match?.match_id)return p.watchMatch(match.match_id);},[match?.match_id]);
-  if(!match) return <Screen title="Match unavailable" back><Empty title="Match unavailable" body="Return to fixtures and refresh the schedule."/></Screen>;
-  return <Screen title="Match centre" subtitle={p.selectedLeague?.name} back stateful>
+  if(!match) return <Screen title="Match centre" back skeleton="detail"><Empty title="Match unavailable" body="Return to fixtures and refresh the schedule."/></Screen>;
+  return <Screen title="Match centre" subtitle={p.selectedLeague?.name} back stateful skeleton="detail">
     <Card style={{ backgroundColor: c.olive, paddingVertical: 24 }}><View style={[ui.between, { flexWrap: 'wrap' }]}><Badge label={match ? humanize(match.status) : 'Match unavailable'} tone={match?.status === 'in_progress' ? 'success' : 'neutral'} /><T variant="caption" color={c.muted}>{match ? 'Confirmed score' : 'Awaiting match data'}</T></View>
       <View style={[ui.row, { alignItems: 'flex-start', gap: 16 }]}>{[{ name: match?.home_name || match?.home_team_id || 'Home team', score: match?.score.home, extra: match?.home_extra }, { name: match?.away_name || match?.away_team_id || 'Away team', score: match?.score.away, extra: match?.away_extra }].map((team, i) => <View key={i} style={{ flex: 1, alignItems: 'center', gap: 12 }}><Avatar name={team.name} size={52} /><T variant="strong" style={{ textAlign: 'center' }}>{team.name}</T><T variant="score" accessibilityLabel={`${team.name}, score ${team.score ?? 'unavailable'}`}>{team.score ?? '—'}</T>{!!team.extra && <T variant="caption" color={c.secondary}>{team.extra}</T>}</View>)}</View>
       <View style={ui.divider} /><T variant="caption" color={c.secondary} style={{ textAlign: 'center' }}>{dateLabel(match?.scheduled_at)}{match?.venue ? ` · ${match.venue}` : ''}</T>

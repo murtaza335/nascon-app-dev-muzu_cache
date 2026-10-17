@@ -20,7 +20,7 @@ function useAppValue() {
   const [session, setSession] = useState<Session | null>(null); const auth = useRef(session);
   const [preferences, setPreferences] = useState(defaults); const prefs = useRef(preferences);
   const [ready, setReady] = useState(false); const [bootError, setBootError] = useState('');
-  const [busy, setBusy] = useState(false); const locked = useRef(false);
+  const [busy, setBusy] = useState(false); const locked = useRef(false); const [blocking, setBlocking] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false); const fetching = useRef<Session | null>(null);
   const [resourceError, setResourceError] = useState(''); const [message, setMessage] = useState<string | null>(null);
   const [networkOnline, setNetworkOnline] = useState(true); const online = useRef(true);
@@ -51,10 +51,11 @@ function useAppValue() {
     } catch { setBootError('Could not open secure local storage. Retry, or rebuild the Android app with its native modules.'); }
   }
   useEffect(() => { void load(); return NetInfo.addEventListener(state => { online.current = state.isConnected !== false; setNetworkOnline(online.current); }); }, []);
-  async function withLock<T>(job: () => Promise<T>, fallback: T): Promise<T> {
+  /** `label` marks user-started work that blocks input behind the loading overlay; background work passes none. */
+  async function withLock<T>(job: () => Promise<T>, fallback: T, label?: string): Promise<T> {
     if (locked.current) return fallback;
-    locked.current = true; setBusy(true);
-    try { return await job(); } catch (error) { notify(showError(error)); return fallback; } finally { locked.current = false; setBusy(false); }
+    locked.current = true; setBusy(true); if (label) setBlocking(label);
+    try { return await job(); } catch (error) { notify(showError(error)); return fallback; } finally { locked.current = false; setBusy(false); setBlocking(null); }
   }
   async function refresh() {
     const s = auth.current; if (!s || !online.current || fetching.current === s || locked.current) return;
@@ -74,14 +75,14 @@ function useAppValue() {
       const saved = await storage.readWorkspace(sessionScope(next)) || emptyWorkspace();
       await sessionStorage.save(next); publishSession(next); publish({ ...saved, data: { ...saved.data, user: response.user, tenant: response.tenant } });
       setLeagueId(undefined); setMessage(null); setResourceError(''); return true;
-    }, false);
+    }, false, 'Signing you in…');
   }
   async function logout(discardPending = false) {
     return withLock(async () => {
       const s = auth.current; publishSession(null); await commits.current.catch(() => {});
       if (s) await storage.saveWorkspace(sessionScope(s), { ...emptyWorkspace(), pending: discardPending ? [] : work.current.pending });
       await sessionStorage.clear(); publishSession(null); publish(emptyWorkspace()); watched.current.clear(); setCartUndo(null); setLeagueId(undefined); setResourceError(''); setMessage(null); return true;
-    }, false);
+    }, false, 'Signing out…');
   }
   async function changeServer(value: string) {
     return withLock(async () => {
@@ -89,7 +90,7 @@ function useAppValue() {
       if (s) await storage.saveWorkspace(sessionScope(s), { ...emptyWorkspace(), pending: work.current.pending });
       await sessionStorage.clear(); const next = { ...prefs.current, serverUrl }; await storage.savePreferences(next);
       prefs.current = next; setPreferences(next); publishSession(null); publish(emptyWorkspace()); watched.current.clear(); setCartUndo(null); setResourceError(''); setLeagueId(undefined); notify('Server address saved. Sign in to continue.'); return true;
-    }, false);
+    }, false, 'Switching server…');
   }
   async function setTenantId(tenantId: string) {
     await withLock(async () => {
@@ -97,7 +98,7 @@ function useAppValue() {
       const next = { ...s, tenantId }; const saved = await storage.readWorkspace(sessionScope(next)) || emptyWorkspace();
       await sessionStorage.save(next); publishSession(next); publish({ ...saved, data: { ...saved.data, user: s.user, tenants: work.current.data.tenants, tenant: work.current.data.tenants?.find(x => x.tenant_id === tenantId) || null } });
       watched.current.clear(); setLeagueId(undefined); setCartUndo(null); setResourceError('');
-    }, undefined);
+    }, undefined, 'Switching organization…');
   }
   async function syncInternal(s: Session) {
     if (!online.current || !work.current.pending.length) return;
@@ -156,7 +157,7 @@ function useAppValue() {
       else if (command.kind === 'orderTransition') await client.request(`/store/orders/${encodeURIComponent(command.orderId)}/transition`, 'POST', { to: command.to });
       else if (command.kind === 'addPlayer') { const result = await client.request<{ player: { player_id: string } }>(`/clubs/${encodeURIComponent(command.clubId)}/players`, 'POST', { name: command.name, position: command.position, league_id: command.leagueId, squad_id: command.squadId, role: command.role }); resultId = result.player.player_id; }
       notify('Saved successfully.'); return { ok: true, id: resultId, message: 'Saved successfully.' };
-    }, { ok: false, code: 'SERVICE_UNAVAILABLE', message: 'Could not complete this action. Please retry.' });
+    }, { ok: false, code: 'SERVICE_UNAVAILABLE', message: 'Could not complete this action. Please retry.' }, command.kind === 'checkout' ? 'Placing your order…' : 'Saving your changes…');
     if (result.ok && !result.queued) void refresh(); return result;
   }
   async function setCart(value: CartLine[] | ((previous: CartLine[]) => CartLine[])) {
@@ -197,7 +198,7 @@ function useAppValue() {
   const data = { ...workspace.data, eventTypes: eventsFor(), queue: [...workspace.pending.map(x => ({ action_id: x.action_id, queued_at: x.queued_at, label: x.type === 'score_event' ? 'Match event' : 'Registration change', status: 'pending' as const, reason: undefined })), ...workspace.outcomes] };
   const connection: Connection = syncing ? 'syncing' : networkOnline ? 'online' : 'offline';
   return { data, role: session?.user.role || 'viewer' as Role, connection, selectedLeague, setLeagueId, serverUrl: preferences.serverUrl, setServerUrl: changeServer,
-    cart: workspace.cart, setCart, message, setMessage, notify, addToCart, setTenantId, session, ready, bootError, retryBoot: load, busy, refreshing, resourceError, refresh, run, login, logout, sync,
+    cart: workspace.cart, setCart, message, setMessage, notify, addToCart, setTenantId, session, ready, bootError, retryBoot: load, busy, blocking, refreshing, resourceError, refresh, run, login, logout, sync,
     theme, themePreference: preferences.theme, setTheme, pendingCount: workspace.pending.length, undoCart, canUndoCart: !!cartUndo, watchMatch, fetchHistory, eventsFor, exportReceipt };
 }
 type AppValue = ReturnType<typeof useAppValue>;
