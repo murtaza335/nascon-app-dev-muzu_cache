@@ -36,3 +36,6 @@ Pods/
 .vscode/
 .DS_Store
 *.log
+
+# The built APK is a deliverable (DEL-06)
+!mobile/release/app-release.apk

@@ -35,7 +35,7 @@ class ApiClient(requests.Session):
 
 @pytest.fixture(scope="session")
 def base_url():
-    return os.environ.get("BASE_URL", "http://localhost:3000").rstrip("/")
+    return os.environ.get("BASE_URL", "http://localhost:8080").rstrip("/")
 
 
 @pytest.fixture(scope="session")
@@ -92,3 +92,4 @@ def pytest_terminal_summary(terminalreporter):
     if _REQS_TOUCHED:
         terminalreporter.write_sep("=", "requirements touched")
         terminalreporter.write_line(", ".join(sorted(_REQS_TOUCHED)))
+

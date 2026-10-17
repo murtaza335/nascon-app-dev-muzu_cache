@@ -38,9 +38,10 @@ services:
     # Config here must work with no .env file.
     build: ./backend
     ports:
-      - "${BACKEND_PORT:-3000}:3000"
+      - "8080:8080"
     environment:
-      PORT: 3000
+      PORT: 8080
+      DAY1_SALT: ${DAY1_SALT}
       NODE_ENV: production
       DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@postgres:5432/${POSTGRES_DB:-app}
       REDIS_URL: redis://redis:6379
@@ -54,7 +55,7 @@ services:
         condition: service_healthy
     healthcheck:
       # 127.0.0.1 rather than localhost: busybox wget may resolve localhost to ::1 first.
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 12

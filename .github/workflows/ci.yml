@@ -27,7 +27,7 @@ jobs:
         run: docker compose up --build -d --wait
 
       - name: Wait for health
-        run: ./scripts/wait-for-health.sh http://localhost:3000/health 90
+        run: ./scripts/wait-for-health.sh http://localhost:8080/health 90
 
       - uses: actions/setup-python@v5
         with:

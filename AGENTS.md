@@ -49,7 +49,7 @@ port 3000 and the `{error_code}` body) predate the spec. **Where they conflict w
 ## 6. Verification commands
 These are proposed until the first slice lands; replace "proposed" with "verified" in ARCHITECTURE §12 when they run.
 ```bash
-cd backend && node --test tests/unit                      # unit (pure, no stack needed)
+cd backend && node --test "tests/unit/**/*.test.js"                    # unit (pure, no stack needed)
 ./run_tests.sh                                            # unit + coverage → COVERAGE.json (+ API suite if stack up)
 DAY1_SALT=dev-salt docker compose up -d --build && ./scripts/wait-for-health.sh http://localhost:8080/health 120
 cd tests && ../.venv/bin/pytest api -m "not destructive"  # contract vectors

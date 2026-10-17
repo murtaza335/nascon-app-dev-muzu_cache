@@ -1,20 +1,14 @@
 'use strict';
 const { Router } = require('express');
-const db = require('../db');
-const cache = require('../cache');
+const { AppError, E } = require('../errors');
+const { isBaselineReady } = require('../services/reset');
 
 const router = Router();
 
-// REQ-00: readiness probe. Only the DB is critical; a Redis outage reports cache:false but stays 200.
-router.get('/health', async (req, res) => {
-  const [dbOk, cacheOk] = await Promise.all([db.ping(), cache.ping()]);
-  if (!dbOk) return res.status(503).json({ status: 'unhealthy', db: false, cache: cacheOk });
-  res.status(200).json({ status: 'ok', db: true, cache: cacheOk });
-});
-
-// Some graders probe the root path.
-router.get('/', (req, res) => {
-  res.status(200).json({ service: 'backend', status: 'ok' });
+// API-01: 200 {"status":"ok"} only when the DB is reachable and the baseline is seeded. No MinIO dependency.
+router.get('/health', async (req, res, next) => {
+  if (!(await isBaselineReady())) return next(new AppError(E.SERVICE_UNAVAILABLE));
+  res.status(200).json({ status: 'ok' });
 });
 
 module.exports = router;

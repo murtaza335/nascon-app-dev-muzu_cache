@@ -2,7 +2,7 @@
 # Usage:
 #   docker compose -f docker-compose.yml -f docker-compose.test.yml --profile ui up -d --wait
 #   docker compose -f docker-compose.yml -f docker-compose.test.yml --profile perf run --rm k6
-# Browsers reach the backend as http://backend:3000 (never host.docker.internal).
+# Browsers reach the backend as http://backend:8080 (never host.docker.internal).
 services:
   selenium-hub:
     image: selenium/hub:4.24.0
@@ -53,7 +53,7 @@ services:
     volumes:
       - ./tests/perf:/scripts:ro,z
     environment:
-      BASE_URL: http://backend:3000
+      BASE_URL: http://backend:8080
     depends_on:
       backend:
         condition: service_healthy
