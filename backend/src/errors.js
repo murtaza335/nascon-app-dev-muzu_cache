@@ -79,6 +79,8 @@ function notFoundHandler(req, res, next) {
 // eslint-disable-next-line no-unused-vars
 function errorHandler(err, req, res, next) {
   let appErr = err instanceof AppError ? err : null;
+  // Hostile text that PostgreSQL cannot store (e.g. \u0000 in jsonb) is a client error, never a 500 (NFR-5).
+  if (!appErr && err && ['22P05', '22021', '22P02', '22003', '22001'].includes(err.code)) appErr = validationError(['body']);
   if (!appErr) {
     // Full detail stays server-side only.
     console.error(`[error] request_id=${req.id || '-'} ${req.method} ${req.originalUrl.split('?')[0]}`, err);

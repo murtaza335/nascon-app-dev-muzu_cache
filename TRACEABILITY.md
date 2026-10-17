@@ -17,8 +17,8 @@ behavior and tests exist. This review does not mark MOB/NFR requirements complet
 |---|---|---|---|---|
 | FR-1.1-01 | Mystery sport from JSON (API-03) | `backend/src/domain/scoring/sportSchema.js`, `services/sports.js`, `routes/audit/sports.js` | `backend/tests/unit/scoring/sportSchema.test.js`, `tests/api/test_sports_api.py` | Todo |
 | FR-1.1-02 | Seeded sports | `backend/src/seed/baseline.js` | `tests/api/test_reset_api.py` | Todo |
-| FR-1.1-03 | Event/innings/round models + limits | `domain/scoring/projection.js`, `domain/scoring/eventRules.js` | `unit/scoring/projection.test.js`, `unit/scoring/eventRules.test.js`, `tests/api/test_events_api.py` | Todo |
-| FR-1.1-04 | Event sourcing, compensation, score projection (API-06/07) | `services/events.js`, `repos/events.js`, `routes/audit/events.js`, `routes/audit/score.js` | `tests/api/test_events_api.py`, `tests/api/test_score_api.py` | Todo |
+| FR-1.1-03 | Event/innings/round models + limits | `domain/scoring/projection.js:build`, `domain/scoring/eventRules.js` | `unit/scoring/projection.test.js`, `unit/scoring/eventRules.test.js`, `tests/api/test_events_api.py::test_fr_1_1_03_*` | Tested |
+| FR-1.1-04 | Event sourcing, compensation, score projection (API-06/07) | `services/events.js:appendEvent`, `services/score.js:getScore`, `repos/events.js`, `routes/audit/events.js` | `tests/api/test_events_api.py` | Tested |
 | FR-1.1-05 | No hard-coded sport logic | CI grep step (`.github/workflows/ci.yml`) | CI job | Todo |
 | FR-1.2-01 | Seasons/divisions/stages (P2) | `services/leagueStructure.js` | `unit/…` | Todo |
 | FR-1.2-02 | Register league (API-05) | `services/leagues.js`, `routes/audit/leagues.js` | `tests/api/test_leagues_api.py` | Todo |
