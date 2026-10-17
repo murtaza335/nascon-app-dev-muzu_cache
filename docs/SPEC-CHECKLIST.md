@@ -6,9 +6,9 @@ Read the spec once end to end, then fill this in. Anything the spec defines **ov
 
 ## API contract
 
-- [ ] Base URL / port the grader uses: `________` (default `http://localhost:3000`)
-- [ ] Health path and expected body: `________` (default `GET /health` -> `{"status":"ok",...}`)
-- [ ] Path prefix (`/api`, `/api/v1`, none?): `________`
+- [ ] Base URL / port the grader uses: `________` (required `http://localhost:8080`)
+- [ ] Health path and expected body: `________` (required `GET /health` -> exactly `{"status":"ok"}`)
+- [ ] Path prefix (`/audit/v1` graded; `/api/v1` mobile): `________`
 - [ ] Endpoint list:
 
 | Method | Path | Request body / query | Success status + body | Error cases | REQ ID |
@@ -20,13 +20,13 @@ Read the spec once end to end, then fill this in. Anything the spec defines **ov
 | | | | | | |
 
 - [ ] Request/response JSON shapes: field names (`snake_case` or `camelCase`?), types, nullability
-- [ ] Id type: integer or UUID/string?
-- [ ] Timestamp format (default ISO-8601 UTC `2026-10-17T10:45:00.000Z`)
+- [ ] Id type: case-sensitive client strings as defined by REQUIREMENTS section 5.
+- [ ] Timestamp format (required UTC without fractional seconds `2026-10-17T10:45:00Z`)
 - [ ] Status codes: create 201 or 200? delete 204 or 200 with body?
-- [ ] **Error format** (exact shape): `________` (default `{error_code, message, details?}`)
+- [ ] **Error format** (exact shape): `________` (required `{error:{code,message,details:{}}}`)
 - [ ] Error code names required? `________`
 - [ ] Auth: none / API key / bearer JWT / session? Header name? Roles?
-- [ ] Pagination: style (`limit/offset`, `page/size`, cursor), defaults, max, response envelope
+- [ ] Production pagination: limit/offset; default limit 50, max 100; `{data,total,limit,offset}`. No audit pagination.
 - [ ] Sorting / filtering params
 - [ ] Seed data required at startup? (must be deterministic and idempotent)
 

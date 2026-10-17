@@ -1,5 +1,13 @@
 # NaSCon '26 App Dev: Backend + Mobile Starter
 
+> Mobile handoff (2026-10-17): `mobile/` now contains an Expo/React Native
+> scaffold. Use [mobile/README.md](mobile/README.md) for its existing setup and
+> [mobile/SCREEN-PLAN.md](mobile/SCREEN-PLAN.md) for the pre-design review.
+> The backend starter examples below describe legacy behavior, not the target
+> contracts. [REQUIREMENTS.md](REQUIREMENTS.md) and
+> [ARCHITECTURE.md](ARCHITECTURE.md) govern port 8080, the error envelope and
+> the planned stack. Backend readiness has not been verified by the mobile review.
+
 ## What this is
 
 A generic, domain-free starter for the 8-hour NaSCon '26 app-dev competition:
@@ -7,7 +15,7 @@ A generic, domain-free starter for the 8-hour NaSCon '26 app-dev competition:
 - **Backend:** Node 20 + Express 5, PostgreSQL 16, Redis 7 (cache-aside), all in one root `docker-compose.yml` that the autograder runs as-is.
 - **Conventions baked in:** one consistent error body, strict input validation, malformed id is 400 and missing id is 404, conflicts are 409, ISO-8601 UTC timestamps, `snake_case` JSON.
 - **Test harness:** `node:test` unit tests, pytest API test vectors tagged with requirement IDs, an optional Selenium smoke test, a k6 smoke test and a CI workflow that mirrors the grader.
-- **Mobile:** React Native (Android, physical phone). `mobile/` is a placeholder; create the app on the day ([docs/MOBILE.md](docs/MOBILE.md)).
+- **Mobile:** Expo/React Native Android scaffold exists; only a placeholder screen is implemented ([mobile setup](mobile/README.md), [desk-check checklist](docs/MOBILE.md)).
 
 The only domain code is `backend/src/routes/example.js` (an `items` CRUD), which shows every convention. **Replace it on the day.**
 
@@ -85,7 +93,7 @@ docker-compose.test.yml   selenium / k6 (profiles ui, ui-firefox, perf)
 backend/src/              index.js (boot) app.js config.js db.js migrate.js cache.js errors.js validate.js routes/
 backend/tests/            node:test unit + smoke tests
 tests/                    pytest: api/, e2e-web/, e2e-mobile/, perf/ (k6)
-mobile/                   React Native app (created on the day, tracked by the root repo)
+mobile/                   Expo/React Native scaffold, tracked by the root repo
 docs/                     MOBILE, TEAM, CACHING, SPEC-CHECKLIST
 scripts/                  push, wait-for-health, run-tests, preflight, pull-images, transplant
 ADR.md, TRACEABILITY.md   graded documents (keep these exact names)

@@ -8,6 +8,10 @@ Maps every FR/NFR ID (spec §3–§4, refined in [`REQUIREMENTS.md`](REQUIREMENT
 - `Status`: Todo | In progress | Done (code) | Tested (code + passing tests) | Descoped.
 - Coverage check: `grep -rhoE --exclude-dir=node_modules "(FR|NFR|API|APP|MOB|BR)-[A-Z0-9.-]+" backend tests mobile | sort -u`.
 
+Mobile readiness review: [mobile/SCREEN-PLAN.md](mobile/SCREEN-PLAN.md). The
+feature/service folders exist as placeholders; the rows below stay Todo until
+behavior and tests exist. This review does not mark MOB/NFR requirements complete.
+
 ## Matrix
 | ID | Requirement | Code (planned) | Tests (planned) | Status |
 |---|---|---|---|---|
@@ -44,8 +48,8 @@ Maps every FR/NFR ID (spec §3–§4, refined in [`REQUIREMENTS.md`](REQUIREMENT
 | FR-SYS-03 | Rate-limited ping (API-16) | `http/middleware/rateLimit.js` | `tests/api/test_security_api.py` | Todo |
 | FR-OFF-01 | Offline sync (API-17, APP-40) | `domain/sync/resolve.js`, `services/sync.js` | `unit/sync/resolve.test.js`, `tests/api/test_offline_sync_api.py` | Todo |
 | NFR-3 | Concurrency correctness | `services/store.js` | `tests/api/test_checkout_api.py::test_nfr3_burst_20` | Todo |
-| NFR-4 | Offline tolerance | `mobile/src/db/*`, `mobile/src/sync/*` | `tests/api/test_offline_sync_api.py`, desk-check script in `docs/MOBILE.md` | Todo |
-| NFR-5 | Security | `lib/jwt.js`, `http/middleware/*`, `domain/rbac/*`, mobile `auth/session.ts` | `tests/api/test_security_api.py`, `tests/api/test_rbac_api.py` | Todo |
+| NFR-4 | Offline tolerance | `mobile/src/services/storage/*`, `mobile/src/services/sync/*` (planned) | `tests/api/test_offline_sync_api.py`, desk-check script in `docs/MOBILE.md` | Todo |
+| NFR-5 | Security | `lib/jwt.js`, `http/middleware/*`, `domain/rbac/*`, mobile `src/services/auth/session.ts` (planned) | `tests/api/test_security_api.py`, `tests/api/test_rbac_api.py` | Todo |
 | NFR-7 | Reproducibility | `docker-compose.yml`, `backend/src/index.js` | CI cold start (`.github/workflows/ci.yml`) | Todo |
 | NFR-PERF-01 | Latency bounds | all | `tests/perf/smoke.js`, timing asserts in pytest | Todo |
 | NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js` | `unit/scoring/signature.test.js` (App. A vector 1) | Todo |

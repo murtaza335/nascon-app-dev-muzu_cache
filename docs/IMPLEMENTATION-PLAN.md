@@ -58,6 +58,19 @@ APP-01/02 login/me → APP-10/11/13/16 reads (cached) → APP-15 events → APP-
 pytest vectors per slice; `run_tests.sh` + `scripts/coverage-areas.js` → COVERAGE.json; TRACEABILITY rows; README (run instructions, demo accounts, desk-check steps incl. `SEED_DEMO_DATA=true`); Appendix C checklist; cold-start rehearsal with `docker compose down -v`.
 
 ### Mobile track (MOB)
+
+Readiness review (2026-10-17): all existing project Markdown reviewed; existing
+Expo feature/service scaffold retained and mapped in ARCHITECTURE §11.
+[Screen inventory and integration gaps](../mobile/SCREEN-PLAN.md) are ready for
+the screen-design phase. Only the placeholder app exists; the navigation shell,
+theme, Settings, API client and remaining mobile deliverables below are pending.
+No timeline or priority changes are implied.
+
+Screen completeness pass (2026-10-17): the screen plan now enumerates 21 primary
+screens, shared dialogs/selectors, role routes, all MOB-01-12 mappings and a
+separate P2 management backlog. Orders, Order Detail and Account were missing
+from the initial inventory. Follow its design sequence; all screens remain planned.
+
 | Time | Deliverable |
 |---|---|
 | 11:30–12:15 | RN app in `mobile/` (no nested git), navigation shell, theme tokens, Settings (base URL), API client + error map, mock responses from REQUIREMENTS examples |

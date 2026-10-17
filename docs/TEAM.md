@@ -10,12 +10,12 @@
 | B | 16 GB (Fedora) | **Backend:** docker compose stack, API routes, migrations |
 | C | 16 GB | **Tests, docs, CI watch:** pytest vectors, TRACEABILITY/ADR, watches GitHub Actions, spec checklist |
 
-Docker's Node 20 (`node:20-alpine`) is the **source of truth** for the backend; host Node versions only matter for tooling. Run `nvm use 20` before `npm install`, so the lockfile matches.
+The target backend runtime is Node 22 in Docker (ARCHITECTURE section 3); the starter still requires the S0 runtime migration. Use Node 22 for backend tooling and `npm ci` to restore its lockfile. Mobile uses its existing locked Expo/React Native scaffold; see `mobile/README.md`.
 
 ## GitHub
 
 - All three members are collaborators with **write** access, plus the evaluator account **`nascon-eval-26`** (check the spec for the exact access level).
-- Set the default branch name before anyone runs `git init`: `git config --global init.defaultBranch main`.
+- Work in the existing root repository on `master` (AGENTS). Do not initialize another repository inside `mobile/`.
 - Campus networks often block port 22. Use SSH over 443 in `~/.ssh/config`:
 
   ```
@@ -29,7 +29,7 @@ Docker's Node 20 (`node:20-alpine`) is the **source of truth** for the backend; 
 
 ## Pushing
 
-- Push **at least hourly** (2 points per missed hour). Either one designated pusher runs `scripts/push.sh` every hour, or everyone pushes their own work with `scripts/push.sh` (it rebases onto origin first).
+- Humans must authorize pushes. Required PKT push windows are 10:45-11:45, 11:45-12:45, 12:45-13:45 and 13:45-14:45; final push by 15:05:00. Agents may prepare local changes but must not invoke a push script without explicit authorization.
 - **Never force-push.** On a conflict, `push.sh` aborts the rebase and prints the steps; fix it together.
 - Final Day 1 push before **15:05**. **No pushes between 15:05 Day 1 and 10:15 Day 2.** Final Day 2 push before **14:05**.
 - Day 2 continues from the locked Day 1 SHA: start Day 2 with `git pull` and confirm `git log -1` matches the Day 1 final SHA.
@@ -38,12 +38,12 @@ Docker's Node 20 (`node:20-alpine`) is the **source of truth** for the backend; 
 
 - One person owns the **hotspot** for the whole event (and keeps their phone charged).
 - Each laptop shares its IP: `hostname -I` (also printed by `scripts/preflight.sh`). Post the backend laptop's IP in the team chat.
-- Check from the test phone's browser: `http://<backend-ip>:3000/health` must show `{"status":"ok",...}`. If it does not, open the firewall on the backend laptop (see README Troubleshooting).
+- Check from the test phone's browser: `http://<backend-ip>:8080/health` must show `{"status":"ok"}`. If it does not, open the firewall on the backend laptop (see README Troubleshooting).
 - **Do not rely on Tailscale** or other VPNs; campus networks may block them.
 
 ## Morning-of routine
 
 1. `scripts/preflight.sh` on every laptop; fix every MISSING.
 2. Backend laptop: `docker compose up --build -d --wait` once to confirm images and layers are cached.
-3. Mobile laptop: `adb devices` shows `device`; `./gradlew assembleDebug --offline` in the warm-up app still works.
-4. Confirm the competition repo is cloned and has 0 commits, and that nobody pushes before 10:45.
+3. Mobile laptop: follow `mobile/README.md`; `adb devices` shows `device`. Verify the current native build and Gradle cache rather than assuming the warm-up version matches.
+4. Continue in the existing root repository on `master`; observe the human-authorized push windows.

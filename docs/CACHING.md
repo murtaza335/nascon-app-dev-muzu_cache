@@ -2,7 +2,7 @@
 
 # Caching (Redis cache-aside)
 
-Implementation: `backend/src/cache.js`. Decision record: ADR-003. Tests: `tests/api/test_cache_api.py` (REQ-INF-03).
+Implementation: `backend/src/cache.js`. Target decision record: ADR-004 (production GET reads only; never audit, inventory or auth). The code example below describes the legacy starter helper, not verified target behavior. Tests: `tests/api/test_cache_api.py` (REQ-INF-03).
 
 ## What to cache on the day
 
@@ -79,7 +79,7 @@ Measure an endpoint with a real query (joins, aggregates); a trivial `SELECT` on
 ## Failure behaviour
 
 - **Redis down at boot:** the backend starts anyway and reconnects in the background (every 50-500 ms).
-- **Redis down mid-run:** each call fails fast (offline queue disabled, 200 ms timeout), the loader runs and the response is `BYPASS`. `/health` stays 200 with `"cache": false`. Errors are logged at most once every 10 s.
+- **Redis down mid-run:** each call fails fast (offline queue disabled, 200 ms timeout), the loader runs and the response is `BYPASS`. The target `/health` response remains exactly `{"status":"ok"}` when the DB is reachable and the baseline is seeded; Redis is not a response field (REQUIREMENTS API-01). Errors are logged at most once every 10 s.
 - **Invalidation fails (Redis blip during a write):** the resource is marked pending, and reads of it are `BYPASS` until an `INCR` succeeds. A stale value can never be served after a write.
 - **Redis restarts:** no persistence, so it comes back empty, which is correct (cold cache).
 

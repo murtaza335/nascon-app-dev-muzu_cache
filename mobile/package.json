@@ -1,0 +1,27 @@
+{
+  "name": "mobile",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "expo": "~54.0.33",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-native": "0.81.5"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "typescript": "~5.9.2"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "node scripts/configure-android.mjs && expo run:android --device",
+    "prebuild:android": "expo prebuild --platform android --no-install && node scripts/configure-android.mjs",
+    "android:configure": "node scripts/configure-android.mjs",
+    "android:device": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-device.ps1",
+    "android:stop": "cd android && gradlew.bat --stop",
+    "typecheck": "tsc --noEmit",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
+  },
+  "private": true
+}

@@ -1,122 +1,79 @@
-> **Superseded where conflicting (2026-10-17).** This starter guide predates the NaSCon '26 Part I spec. The canonical sources are [`REQUIREMENTS.md`](../REQUIREMENTS.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), [`ADR.md`](../ADR.md) and [`AGENTS.md`](../AGENTS.md). Key overrides: API port **8080** (not 3000); error body `{"error":{"code","message","details":{}}}`; mobile storage is SQLite + Keystore (not AsyncStorage). See `docs/CHANGELOG.md`.
+# Mobile setup and desk-check handoff
 
-# Mobile (React Native, Android, physical phone)
+The existing app is an Expo/React Native Android scaffold in `mobile/`. Do not
+initialize a second app or nested Git repository. Only a placeholder screen is
+implemented. Product behavior: [REQUIREMENTS](../REQUIREMENTS.md) sections 8-10;
+structure: [ARCHITECTURE](../ARCHITECTURE.md) section 11; libraries: ADR-017.
 
-## 1. Create the app on the day
+## Setup and current commands
 
-From the **repo root**:
+Follow [mobile/README.md](../mobile/README.md) for the exact Windows SDK/JDK,
+prebuild, device, Metro and TypeScript commands. Run them inside `mobile/`.
+Use `npm ci` to restore the lockfile. Add only approved dependencies with
+`npx expo install`, recording exact installed versions under ADR-017.
 
-```bash
-rm mobile/.gitkeep
-npx @react-native-community/cli@latest init <AppName> --directory mobile --skip-git-init
-```
+The locked scaffold has Expo 54.0.37 / React Native 0.81.5 / React 19.1.0.
+Navigation, SQLite, Keychain, connectivity and sync are not installed/implemented.
+The current native setup script is machine-specific, and an Android build is
+not verified by this documentation review. Native directories are generated and
+ignored; configuration changes must be reproducible from tracked files.
 
-> **CRITICAL: do not initialize a git repository inside `mobile/`.** The React Native code must be tracked by the root repository to be graded. A nested `.git` turns `mobile/` into an untracked or gitlink entry and the grader sees nothing.
+- Backend target: `http://<backend laptop LAN IP>:8080` on a physical phone.
+- Emulator default: `http://10.0.2.2:8080`.
+- Same laptop over USB: `adb reverse tcp:8080 tcp:8080`, then use
+  `http://localhost:8080`. Metro forwarding on 8081 is separate.
+- Build-time default: `EXPO_PUBLIC_API_URL`. A runtime server-address setting
+  reachable from Login remains required by MOB-01/MOB-10.
+- Production routes: `/api/v1/*`; errors:
+  `{error:{code,message,details:{}}}` with `details.fields` on validation failures.
+  Use one plain-language error map; do not use the legacy `error_code` parser.
+- SQLite stores cached data and queued actions; tokens belong only in Keychain
+  backed by Android Keystore. AsyncStorage does not satisfy SQLite persistence.
 
-Verify:
+## Screen implementation handoff
 
-```bash
-find . -name .git -not -path './.git' -prune     # must print nothing
-git status                                        # must list files under mobile/
-```
+[mobile/SCREEN-PLAN.md](../mobile/SCREEN-PLAN.md) records the documentation review,
+retained directory layout, screen inventory, role navigation, shared states and
+integration questions. Implement the judged journeys with loading, empty, error,
+success and offline states. This document does not claim any journey passes yet.
 
-If a nested `.git` appeared anyway: `rm -rf mobile/.git`, then `git rm --cached mobile` if it was added as a gitlink, then `git add mobile`.
+## Release delivery (pending verification)
 
-Commit the lockfile (`mobile/package-lock.json` or `yarn.lock`) and `mobile/android/gradle/wrapper/gradle-wrapper.jar`. Then:
+The required artifact is `mobile/release/app-release.apk`, installable on Android
+10 (API 29) or newer. Build a native APK that runs without Metro. Track repeatable
+release HTTP configuration and signing in the Expo/native setup workflow; a
+manual edit to ignored generated Android files will not survive prebuild.
+Follow ADR-017's planned signing choice. Native module compatibility, Gradle cache
+availability, release signing/build/copy and device installation remain unverified.
+APK installation on the judging device is a human release action (root AGENTS).
 
-```bash
-cd mobile && npx react-native doctor
-```
+## Offline desk-check checklist (spec section 8.4)
 
-## 2. Warm the Gradle cache at home (before the event)
+Run on the release APK with the backend reachable, using the demo accounts from
+REQUIREMENTS DEL-08. Record device/API level, APK version and observed outcomes.
+All boxes below are currently unchecked.
 
-The campus allowlist covers pypi.org, registry.npmjs.org, pub.dev and repo.maven.apache.org only. **dl.google.com (Android Gradle Plugin, AndroidX) and plugins.gradle.org may be blocked**, so the first Gradle build must happen at home.
+- [ ] Open Fixtures, Standings and Club profile online; verify SQLite persistence.
+- [ ] Enable airplane mode; reopen those screens and see cached data plus Offline.
+- [ ] As Organizer, queue a scoring action; see Pending with its stable action ID.
+- [ ] As Manager, queue a roster action; see Pending in the API-17 action format.
+- [ ] Force-close and reopen offline; pending work remains with the same IDs.
+- [ ] Restore networking; automatic sync or the obvious Sync button sends APP-40.
+- [ ] Applied/duplicate actions leave Pending; rejected results show a plain-language
+  reason in sync history. Sending the same actions again does not repeat mutations.
+- [ ] Expired sessions retain pending work; logout asks before discarding it.
+- [ ] Switching users/tenants/servers cannot expose cached data or replay another
+  scope's queue.
 
-```bash
-cd /tmp && npx @react-native-community/cli@latest init WarmUp --skip-git-init
-cd WarmUp
-npm i @react-navigation/native @react-navigation/native-stack @react-navigation/bottom-tabs \
-      react-native-screens react-native-safe-area-context react-native-gesture-handler \
-      @react-native-async-storage/async-storage axios
-cd android
-./gradlew assembleDebug
-./gradlew assembleDebug --offline     # must succeed: proves the cache is complete
-ls ~/.gradle/wrapper/dists            # must exist
-```
+## Judge-task and accessibility rehearsal (spec section 8.6)
 
-Use the **same React Native version** on the day as for the warm-up (pin it: `--version <x.y.z>`), or the Gradle/AGP versions will differ and the cache will miss. Also keep the npm cache (`~/.npm`) warm; registry.npmjs.org is allowed, but it is slow on a shared network.
-
-## 3. Phone setup
-
-1. Settings, About phone: tap Build number 7 times; Developer options: enable **USB debugging**.
-2. Plug in with a data cable and set the USB mode to File Transfer.
-3. `adb devices` must show `<serial>  device`.
-   - `unauthorized`: accept the RSA prompt on the phone (revoke authorisations and replug if it does not appear).
-   - `no permissions`: add a udev rule (`SUBSYSTEM=="usb", ATTR{idVendor}=="<vendor>", MODE="0666", GROUP="plugdev"` in `/etc/udev/rules.d/51-android.rules`), then `sudo udevadm control --reload-rules` and replug.
-
-## 4. Reaching the backend
-
-**Backend on the same laptop as the phone (recommended):**
-
-```bash
-adb reverse tcp:3000 tcp:3000    # API
-adb reverse tcp:8081 tcp:8081    # Metro
-```
-
-Base URL: `http://localhost:3000`. Re-run `adb reverse` after every replug.
-
-**Backend on a different laptop:** use that laptop's IP on the shared hotspot (`hostname -I` there), e.g. `http://192.168.43.17:3000`. Check from the phone's browser that `http://<ip>:3000/health` loads before debugging the app.
-
-Keep **one** base-URL constant, e.g. `mobile/src/config.js`:
-
-```js
-export const API_BASE_URL = 'http://localhost:3000';
-```
-
-## 5. Cleartext HTTP
-
-Debug builds allow `http://`. Release builds block it: add `android:usesCleartextTraffic="true"` to `<application>` in `android/app/src/main/AndroidManifest.xml` if you ship a release APK that talks to a plain-HTTP backend.
-
-## 6. Error handling
-
-The backend always returns `{ error_code, message, details? }`. The API client should parse it once and throw a typed error; the UI shows `message` and can switch on `error_code`:
-
-```js
-export async function api(path, { method = 'GET', body } = {}) {
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (res.status === 204) return null;
-  const data = await res.json().catch(() => null);
-  if (!res.ok) {
-    const err = new Error(data?.message || `HTTP ${res.status}`);
-    err.code = data?.error_code || 'NETWORK_ERROR';
-    err.details = data?.details || [];
-    err.status = res.status;
-    throw err;
-  }
-  return data;
-}
-```
-
-Show `details[].issue` next to the matching form field for `VALIDATION_ERROR`.
-
-## 7. Appium (optional)
-
-```bash
-npm i -g appium@2
-appium driver install uiautomator2
-appium                                  # terminal 1, listens on :4723
-cd mobile/android && ./gradlew assembleDebug
-APP_PATH=mobile/android/app/build/outputs/apk/debug/app-debug.apk \
-  .venv/bin/pytest tests/e2e-mobile     # from the repo root; skipped if Appium is not running
-```
-
-## 8. RAM
-
-- Use the **physical phone, never the emulator** (an emulator costs 2-4 GB).
-- In `~/.gradle/gradle.properties`: `org.gradle.jvmargs=-Xmx2g` (and optionally `org.gradle.workers.max=2`).
-- **Unset or lower `_JAVA_OPTIONS`** (`unset _JAVA_OPTIONS`): `-Xmx6G` applies to every JVM, including the Gradle daemon and Kotlin compiler, and overrides `org.gradle.jvmargs`.
-- Raise inotify watches if Metro reports `ENOSPC`: `echo fs.inotify.max_user_watches=524288 | sudo tee /etc/sysctl.d/99-inotify.conf && sudo sysctl --system`.
+- [ ] A: Login, find standings, then open one match without assistance.
+- [ ] B: Store, product/variant, cart, mock checkout, view/download receipt.
+- [ ] C: Manager roster action, confirmation, result; repeat offline and sync.
+- [ ] Match detail updates live; compensated events remain visible and struck out.
+- [ ] Tenant branding, consistent spacing/fonts/buttons and strong score/Buy hierarchy.
+- [ ] Body text at least 14 sp, font scaling, contrast at least 4.5:1, targets at
+  least 48 dp, icon labels and status text in addition to color.
+- [ ] Verify 360x640 dp, rotation, keyboard, scrolling and working back navigation.
+- [ ] Every role sees appropriate actions; test ownership and tenant boundaries.
+- [ ] Empty, error/retry, loading, success and offline states have helpful messages.
