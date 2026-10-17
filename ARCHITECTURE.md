@@ -17,7 +17,8 @@ the difference is listed here and in `docs/CHANGELOG.md`:
 
 | Topic | Planned | Implemented |
 |---|---|---|
-| Compose service name | `api` | `backend` (plus `worker`, `postgres`, `redis`, `minio`) |
+| Compose service name | `api` | `backend` (plus `worker`, `postgres`, `redis`, `objectstore`) |
+| Object store | MinIO (`minio/minio`) | `localstack/localstack:3.8.1` S3 service as `objectstore` (MinIO no longer publishes images: Docker Hub and Quay refuse the pull); the `minio` npm client still talks to it; no volume (copies only) |
 | Checkout (§6.3) | two-phase reservation, sweeper | one transaction per checkout (order-id lock, variants `FOR UPDATE` in id order, rollback = release); `reserved` stays 0; `reservations` table and `queue/sweeper.js` are a safety net only |
 | Receipt PDF | `pdfkit` | hand-written uncompressed PDF (`pdf/receiptPdf.js`), no dependency |
 | Swiss matching | weighted blossom | exact branch-and-bound `domain/fixtures/pairing.js` (verified against brute force for n <= 10) |
@@ -314,7 +315,7 @@ Responses are built by explicit mapper functions per contract (field order as in
 | `RESERVATION_TTL_SECONDS` | api, worker | No | `60` | No | Sweeper threshold. |
 | `MOCK_GATEWAY_LATENCY_MS` | api | No | `0` | No | Rehearsal only. |
 | `SEED_DEMO_DATA` | api | No | `false` | No | `true` on the team laptop for the desk check (adds `demo-`-prefixed fixtures/matches/products). **Off for the grader.** |
-| `S3_ENDPOINT` / `S3_BUCKET_RECEIPTS` | worker | No | `http://minio:9000` / `receipts` | No | The bucket is created by the worker at boot. |
+| `S3_ENDPOINT` / `S3_BUCKET_RECEIPTS` | worker | No | `http://objectstore:4566` / `receipts` | No | The bucket is created by the worker at boot. |
 | `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` | minio, worker | No | `minioadmin` / `minioadmin` | Dev-only creds | Not published to the host (no host port). |
 | `LOG_LEVEL` | api, worker | No | `info` | No | — |
 | `BASE_URL` | host tests | No | `http://localhost:8080` | No | Current default (3000) must change. |
@@ -330,11 +331,11 @@ Responses are built by explicit mapper functions per contract (field order as in
 |---|---|---|---|---|
 | `postgres` | `postgres:16-alpine` | none | — | `pg_isready` |
 | `redis` | `redis:7-alpine` (no persistence, `volatile-lru`, 128 MB) | none | — | `redis-cli ping` |
-| `minio` | `quay.io/minio/minio:<pinned>` | none | — | `mc ready local` or a `curl` liveness check (verify which the image provides) |
+| `objectstore` | `localstack/localstack:3.8.1` (replaces MinIO) | none | — | `curl` of `/_localstack/health` for the s3 service |
 | `api` | build `./backend` | **8080:8080** | postgres healthy, redis healthy | `wget -qO- http://127.0.0.1:8080/health` |
-| `worker` | build `./backend`, `command: ["node","src/worker.js"]` | none | postgres healthy, redis healthy, minio healthy, api healthy | process-alive (optional heartbeat file) |
+| `worker` | build `./backend`, `command: ["node","src/worker.js"]` | none | postgres healthy, redis healthy, objectstore started, api healthy | process-alive (optional heartbeat file) |
 
-`api` deliberately does **not** depend on `minio`, so `/health` cannot be delayed by object storage. Restart policy: `unless-stopped`. There is no `container_name` and no `:latest` tag (the current CI checks both).
+`api` deliberately does **not** depend on the object store, so `/health` cannot be delayed by object storage. Restart policy: `unless-stopped`. There is no `container_name` and no `:latest` tag (the current CI checks both).
 
 ### 10.2 Startup sequence (api)
 1. Load config and validate `DAY1_SALT` (exit 1 if missing).

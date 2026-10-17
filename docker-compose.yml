@@ -1,6 +1,6 @@
 # Grader runs this file as-is. No host-specific values.
 # Every variable has a ${VAR:-default} except DAY1_SALT, which the grader supplies in the environment (never committed).
-# Services: postgres, redis, minio, backend (API on host port 8080), worker (outbox relay, consumer, receipt archive).
+# Services: postgres, redis, objectstore (S3), backend (API on host port 8080), worker (outbox relay, consumer, receipt archive).
 name: nascon
 
 services:
@@ -32,21 +32,22 @@ services:
       retries: 10
     restart: unless-stopped
 
-  minio:
-    # Receipt PDF archive (worker only). The API does not depend on it, so /health is never delayed by object storage.
-    # quay.io: Docker Hub no longer serves this tag ("pull access denied").
-    image: quay.io/minio/minio:RELEASE.2024-09-22T00-33-43Z
-    command: ["server", "/data"]
+  objectstore:
+    # S3-compatible object store for the receipt archive (worker only). MinIO no longer publishes images (Docker Hub and
+    # Quay both refuse the pull), so this is LocalStack's S3 service: open source, pinned, any access key is accepted.
+    # The API does not depend on it, so /health is never delayed by object storage. Archived PDFs are copies: the
+    # authoritative receipt stays in PostgreSQL, so the store needs no volume.
+    image: localstack/localstack:3.8.1
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-    volumes:
-      - miniodata:/data
+      SERVICES: s3
+      DEBUG: "0"
+      DISABLE_EVENTS: "1"
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:4566/_localstack/health | grep -Eq 's3.{1,6}(available|running)'"]
       interval: 5s
-      timeout: 3s
-      retries: 12
+      timeout: 5s
+      retries: 24
+      start_period: 10s
     restart: unless-stopped
 
   backend:
@@ -90,7 +91,7 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@postgres:5432/${POSTGRES_DB:-app}
       REDIS_URL: redis://redis:6379
-      S3_ENDPOINT: http://minio:9000
+      S3_ENDPOINT: http://objectstore:4566
       S3_BUCKET_RECEIPTS: ${S3_BUCKET_RECEIPTS:-receipts}
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
@@ -99,8 +100,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      minio:
-        condition: service_healthy
+      objectstore:
+        condition: service_started   # archive retries with backoff; never block the worker on it
       backend:
         condition: service_healthy
     healthcheck:
@@ -114,4 +115,3 @@ services:
 
 volumes:
   pgdata:
-  miniodata:

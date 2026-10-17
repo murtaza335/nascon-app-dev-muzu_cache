@@ -37,7 +37,7 @@ For the desk check (judge phone), add demo fixtures, rosters and products first:
 | worker | same image | none | outbox relay → Redis Stream, consumer, receipt archive to MinIO, reservation sweeper |
 | postgres | `postgres:16-alpine` | none | source of truth, volume `pgdata` |
 | redis | `redis:7-alpine` | none | cache-aside for `/api/v1` reads + the `domain-events` stream |
-| minio | `quay.io/minio/minio:RELEASE.2024-09-22T00-33-43Z` (Docker Hub no longer carries this tag) | none | bucket `receipts`, volume `miniodata` |
+| objectstore | `localstack/localstack:3.8.1` (S3 only; MinIO no longer publishes images) | none | S3 API on `objectstore:4566`, bucket `receipts`; copies only, the receipt of record is in PostgreSQL |
 
 ## Demo accounts (password `Nascon@26`, recreated by every startup and `/reset`)
 
@@ -89,7 +89,7 @@ The API suite needs `DAY1_SALT` exported to the same value as the server for the
 ## Repo layout
 
 ```
-docker-compose.yml        grader entry point (backend, worker, postgres, redis, minio)
+docker-compose.yml        grader entry point (backend, worker, postgres, redis, objectstore)
 backend/src/              index.js (API boot) worker.js config.js db.js cache.js errors.js migrate.js
   http/ lib/ domain/      middleware; pure helpers; pure rules (fixtures scoring standings roster store rbac sync leagues)
   repos/ services/ routes/  SQL only; transactions and orchestration; thin HTTP mapping (audit/ and api/)
@@ -112,7 +112,7 @@ TRACEABILITY.md COVERAGE.json run_tests.sh TASKS.md
 | `MOCK_GATEWAY_LATENCY_MS` | `0` | api (rehearse the checkout burst) |
 | `JWT_SECRET`, `JWT_TTL_SECONDS` | derived from the salt, `43200` | api |
 | `RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW_MS` | `100` / `10000` | api (spec values; changing them breaks grading) |
-| `S3_BUCKET_RECEIPTS`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` | `receipts`, `minioadmin` | worker, minio |
+| `S3_ENDPOINT`, `S3_BUCKET_RECEIPTS`, `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` (S3 credentials; any value works with LocalStack) | `http://objectstore:4566`, `receipts`, `minioadmin` | worker |
 | `PG_POOL_MAX`, `LOG_LEVEL` | `20`, `info` | api |
 | `BASE_URL` | `http://localhost:8080` | host tests |
 

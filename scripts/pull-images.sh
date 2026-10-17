@@ -28,11 +28,8 @@ for img in "${IMAGES[@]}"; do
   docker pull -q "$img" || failed+=("$img")
 done
 
-echo "==> minio/minio:$MINIO_TAG"
-if ! docker pull -q "minio/minio:$MINIO_TAG"; then
-  echo "    Docker Hub failed; trying quay.io/minio/minio:$MINIO_TAG"
-  docker pull -q "quay.io/minio/minio:$MINIO_TAG" || failed+=("minio:$MINIO_TAG")
-fi
+echo "==> localstack/localstack:3.8.1 (S3 object store; MinIO no longer publishes images)"
+docker pull -q "localstack/localstack:3.8.1" || failed+=("localstack:3.8.1")
 
 docker images
 if (( ${#failed[@]} )); then
