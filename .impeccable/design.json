@@ -1,0 +1,448 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-17T07:48:12.905720+00:00",
+  "title": "Design System: NaSCon Sports",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Charcoal canvas",
+        "tonalRamp": [
+          "oklch(15% 0.0134 135.20)",
+          "oklch(26% 0.0134 135.20)",
+          "oklch(38% 0.0134 135.20)",
+          "oklch(49% 0.0134 135.20)",
+          "oklch(61% 0.0134 135.20)",
+          "oklch(72% 0.0134 135.20)",
+          "oklch(84% 0.0134 135.20)",
+          "oklch(95% 0.0134 135.20)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Olive charcoal",
+        "tonalRamp": [
+          "oklch(15% 0.0182 131.39)",
+          "oklch(26% 0.0182 131.39)",
+          "oklch(38% 0.0182 131.39)",
+          "oklch(49% 0.0182 131.39)",
+          "oklch(61% 0.0182 131.39)",
+          "oklch(72% 0.0182 131.39)",
+          "oklch(84% 0.0182 131.39)",
+          "oklch(95% 0.0182 131.39)"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Raised olive",
+        "tonalRamp": [
+          "oklch(15% 0.0234 132.43)",
+          "oklch(26% 0.0234 132.43)",
+          "oklch(38% 0.0234 132.43)",
+          "oklch(49% 0.0234 132.43)",
+          "oklch(61% 0.0234 132.43)",
+          "oklch(72% 0.0234 132.43)",
+          "oklch(84% 0.0234 132.43)",
+          "oklch(95% 0.0234 132.43)"
+        ]
+      },
+      "olive": {
+        "role": "neutral",
+        "displayName": "Context olive",
+        "tonalRamp": [
+          "oklch(15% 0.0327 131.00)",
+          "oklch(26% 0.0327 131.00)",
+          "oklch(38% 0.0327 131.00)",
+          "oklch(49% 0.0327 131.00)",
+          "oklch(61% 0.0327 131.00)",
+          "oklch(72% 0.0327 131.00)",
+          "oklch(84% 0.0327 131.00)",
+          "oklch(95% 0.0327 131.00)"
+        ]
+      },
+      "divider": {
+        "role": "neutral",
+        "displayName": "Olive divider",
+        "tonalRamp": [
+          "oklch(15% 0.0325 131.50)",
+          "oklch(26% 0.0325 131.50)",
+          "oklch(38% 0.0325 131.50)",
+          "oklch(49% 0.0325 131.50)",
+          "oklch(61% 0.0325 131.50)",
+          "oklch(72% 0.0325 131.50)",
+          "oklch(84% 0.0325 131.50)",
+          "oklch(95% 0.0325 131.50)"
+        ]
+      },
+      "outline": {
+        "role": "neutral",
+        "displayName": "Sage outline",
+        "tonalRamp": [
+          "oklch(15% 0.0357 130.86)",
+          "oklch(26% 0.0357 130.86)",
+          "oklch(38% 0.0357 130.86)",
+          "oklch(49% 0.0357 130.86)",
+          "oklch(61% 0.0357 130.86)",
+          "oklch(72% 0.0357 130.86)",
+          "oklch(84% 0.0357 130.86)",
+          "oklch(95% 0.0357 130.86)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Soft white",
+        "tonalRamp": [
+          "oklch(15% 0.0095 119.58)",
+          "oklch(26% 0.0095 119.58)",
+          "oklch(38% 0.0095 119.58)",
+          "oklch(49% 0.0095 119.58)",
+          "oklch(61% 0.0095 119.58)",
+          "oklch(72% 0.0095 119.58)",
+          "oklch(84% 0.0095 119.58)",
+          "oklch(95% 0.0095 119.58)"
+        ]
+      },
+      "secondary": {
+        "role": "neutral",
+        "displayName": "Pale sage",
+        "tonalRamp": [
+          "oklch(15% 0.0305 126.06)",
+          "oklch(26% 0.0305 126.06)",
+          "oklch(38% 0.0305 126.06)",
+          "oklch(49% 0.0305 126.06)",
+          "oklch(61% 0.0305 126.06)",
+          "oklch(72% 0.0305 126.06)",
+          "oklch(84% 0.0305 126.06)",
+          "oklch(95% 0.0305 126.06)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted sage",
+        "tonalRamp": [
+          "oklch(15% 0.0364 129.03)",
+          "oklch(26% 0.0364 129.03)",
+          "oklch(38% 0.0364 129.03)",
+          "oklch(49% 0.0364 129.03)",
+          "oklch(61% 0.0364 129.03)",
+          "oklch(72% 0.0364 129.03)",
+          "oklch(84% 0.0364 129.03)",
+          "oklch(95% 0.0364 129.03)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Electric lime",
+        "tonalRamp": [
+          "oklch(15% 0.2007 123.87)",
+          "oklch(26% 0.2007 123.87)",
+          "oklch(38% 0.2007 123.87)",
+          "oklch(49% 0.2007 123.87)",
+          "oklch(61% 0.2007 123.87)",
+          "oklch(72% 0.2007 123.87)",
+          "oklch(84% 0.2007 123.87)",
+          "oklch(95% 0.2007 123.87)"
+        ]
+      },
+      "on-accent": {
+        "role": "neutral",
+        "displayName": "Dark lime ink",
+        "tonalRamp": [
+          "oklch(15% 0.0387 126.44)",
+          "oklch(26% 0.0387 126.44)",
+          "oklch(38% 0.0387 126.44)",
+          "oklch(49% 0.0387 126.44)",
+          "oklch(61% 0.0387 126.44)",
+          "oklch(72% 0.0387 126.44)",
+          "oklch(84% 0.0387 126.44)",
+          "oklch(95% 0.0387 126.44)"
+        ]
+      },
+      "success": {
+        "role": "secondary",
+        "displayName": "Soft green",
+        "tonalRamp": [
+          "oklch(15% 0.0730 152.65)",
+          "oklch(26% 0.0730 152.65)",
+          "oklch(38% 0.0730 152.65)",
+          "oklch(49% 0.0730 152.65)",
+          "oklch(61% 0.0730 152.65)",
+          "oklch(72% 0.0730 152.65)",
+          "oklch(84% 0.0730 152.65)",
+          "oklch(95% 0.0730 152.65)"
+        ]
+      },
+      "success-bg": {
+        "role": "secondary",
+        "displayName": "Green feedback surface",
+        "tonalRamp": [
+          "oklch(15% 0.0357 151.95)",
+          "oklch(26% 0.0357 151.95)",
+          "oklch(38% 0.0357 151.95)",
+          "oklch(49% 0.0357 151.95)",
+          "oklch(61% 0.0357 151.95)",
+          "oklch(72% 0.0357 151.95)",
+          "oklch(84% 0.0357 151.95)",
+          "oklch(95% 0.0357 151.95)"
+        ]
+      },
+      "warning": {
+        "role": "secondary",
+        "displayName": "Warm amber",
+        "tonalRamp": [
+          "oklch(15% 0.1094 89.72)",
+          "oklch(26% 0.1094 89.72)",
+          "oklch(38% 0.1094 89.72)",
+          "oklch(49% 0.1094 89.72)",
+          "oklch(61% 0.1094 89.72)",
+          "oklch(72% 0.1094 89.72)",
+          "oklch(84% 0.1094 89.72)",
+          "oklch(95% 0.1094 89.72)"
+        ]
+      },
+      "warning-bg": {
+        "role": "secondary",
+        "displayName": "Amber feedback surface",
+        "tonalRamp": [
+          "oklch(15% 0.0281 89.86)",
+          "oklch(26% 0.0281 89.86)",
+          "oklch(38% 0.0281 89.86)",
+          "oklch(49% 0.0281 89.86)",
+          "oklch(61% 0.0281 89.86)",
+          "oklch(72% 0.0281 89.86)",
+          "oklch(84% 0.0281 89.86)",
+          "oklch(95% 0.0281 89.86)"
+        ]
+      },
+      "error": {
+        "role": "secondary",
+        "displayName": "Soft coral",
+        "tonalRamp": [
+          "oklch(15% 0.0891 26.76)",
+          "oklch(26% 0.0891 26.76)",
+          "oklch(38% 0.0891 26.76)",
+          "oklch(49% 0.0891 26.76)",
+          "oklch(61% 0.0891 26.76)",
+          "oklch(72% 0.0891 26.76)",
+          "oklch(84% 0.0891 26.76)",
+          "oklch(95% 0.0891 26.76)"
+        ]
+      },
+      "error-bg": {
+        "role": "secondary",
+        "displayName": "Coral feedback surface",
+        "tonalRamp": [
+          "oklch(15% 0.0347 28.01)",
+          "oklch(26% 0.0347 28.01)",
+          "oklch(38% 0.0347 28.01)",
+          "oklch(49% 0.0347 28.01)",
+          "oklch(61% 0.0347 28.01)",
+          "oklch(72% 0.0347 28.01)",
+          "oklch(84% 0.0347 28.01)",
+          "oklch(95% 0.0347 28.01)"
+        ]
+      },
+      "info": {
+        "role": "secondary",
+        "displayName": "Pale blue",
+        "tonalRamp": [
+          "oklch(15% 0.0516 247.53)",
+          "oklch(26% 0.0516 247.53)",
+          "oklch(38% 0.0516 247.53)",
+          "oklch(49% 0.0516 247.53)",
+          "oklch(61% 0.0516 247.53)",
+          "oklch(72% 0.0516 247.53)",
+          "oklch(84% 0.0516 247.53)",
+          "oklch(95% 0.0516 247.53)"
+        ]
+      },
+      "info-bg": {
+        "role": "secondary",
+        "displayName": "Blue feedback surface",
+        "tonalRamp": [
+          "oklch(15% 0.0332 245.61)",
+          "oklch(26% 0.0332 245.61)",
+          "oklch(38% 0.0332 245.61)",
+          "oklch(49% 0.0332 245.61)",
+          "oklch(61% 0.0332 245.61)",
+          "oklch(72% 0.0332 245.61)",
+          "oklch(84% 0.0332 245.61)",
+          "oklch(95% 0.0332 245.61)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Login introduction."
+      },
+      "heading": {
+        "displayName": "Heading",
+        "purpose": "Available shared large-heading role."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "App-bar titles and compact numeric values."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Section headings and empty-state titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions, fields and longer explanations."
+      },
+      "strong": {
+        "displayName": "Strong",
+        "purpose": "Item names, buttons and important inline content."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Filters, badges and navigation labels."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Supporting metadata and helper text."
+      },
+      "score": {
+        "displayName": "Score",
+        "purpose": "Main match score; native source requests tabular numerals."
+      }
+    },
+    "shadows": [
+      {
+        "name": "feedback-overlay",
+        "value": "React Native Android elevation: 6",
+        "purpose": "Transient feedback overlay only; no CSS shadow equivalence is asserted."
+      }
+    ],
+    "motion": [],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Documentation translation of the native primary action; browser hover/focus are example affordances, not native verification.",
+      "html": "<button class=\"ds-primary\">Sign in</button>",
+      "css": ".ds-primary{background:#C5F545;color:#18200B;min-height:52px;padding:13px 16px;border:0;border-radius:12px;font:600 16px/24px sans-serif;cursor:pointer}.ds-primary:hover{opacity:.9}.ds-primary:active{opacity:.75}.ds-primary:focus-visible{outline:2px solid #C5F545;outline-offset:3px}.ds-primary:disabled{opacity:.45;cursor:default}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Documentation translation of the native secondary action; browser hover/focus are example affordances, not native verification.",
+      "html": "<button class=\"ds-secondary\">Explore screen designs</button>",
+      "css": ".ds-secondary{background:#262D21;color:#F3F5EE;min-height:52px;padding:13px 16px;border:0;border-radius:12px;font:600 16px/24px sans-serif;cursor:pointer}.ds-secondary:hover{opacity:.9}.ds-secondary:active{opacity:.75}.ds-secondary:focus-visible{outline:2px solid #C5F545;outline-offset:3px}.ds-secondary:disabled{opacity:.45;cursor:default}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Documentation translation of the native quiet action; browser hover/focus are example affordances, not native verification.",
+      "html": "<button class=\"ds-quiet\">Server settings</button>",
+      "css": ".ds-quiet{background:transparent;color:#F3F5EE;min-height:52px;padding:13px 16px;border:0;border-radius:12px;font:600 16px/24px sans-serif;cursor:pointer}.ds-quiet:hover{opacity:.9}.ds-quiet:active{opacity:.75}.ds-quiet:focus-visible{outline:2px solid #C5F545;outline-offset:3px}.ds-quiet:disabled{opacity:.45;cursor:default}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Documentation translation of the native danger action; browser hover/focus are example affordances, not native verification.",
+      "html": "<button class=\"ds-danger\">Discard changes</button>",
+      "css": ".ds-danger{background:#38221F;color:#FFB4AB;min-height:52px;padding:13px 16px;border:0;border-radius:12px;font:600 16px/24px sans-serif;cursor:pointer}.ds-danger:hover{opacity:.9}.ds-danger:active{opacity:.75}.ds-danger:focus-visible{outline:2px solid #C5F545;outline-offset:3px}.ds-danger:disabled{opacity:.45;cursor:default}"
+    },
+    {
+      "name": "Labeled Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Shared field translated to HTML, including source focus and error colors.",
+      "html": "<label class=\"ds-field\">Email<input type=\"email\" placeholder=\"you@example.com\" /></label>",
+      "css": ".ds-field{display:flex;flex-direction:column;gap:8px;color:#F3F5EE;font:500 14px/20px sans-serif}.ds-field input{min-height:56px;padding:14px 16px;border:1px solid #74806A;border-radius:12px;background:#1C2118;color:#F3F5EE;font:400 16px/24px sans-serif;caret-color:#C5F545}.ds-field input::placeholder{color:#A0AC94}.ds-field input:focus-visible{outline:none;border-color:#C5F545}.ds-field input[aria-invalid=true]{border-color:#FFB4AB}"
+    },
+    {
+      "name": "Filter Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Selected and unselected filter presentations with written labels.",
+      "html": "<div class=\"ds-chips\"><button aria-pressed=\"true\">All matches</button><button aria-pressed=\"false\">Upcoming</button></div>",
+      "css": ".ds-chips{display:flex;gap:8px;flex-wrap:wrap}.ds-chips button{min-height:48px;padding:13px 16px;border:1px solid #74806A;border-radius:20px;background:#1C2118;color:#BBC4AF;font:500 14px/20px sans-serif;cursor:pointer}.ds-chips button[aria-pressed=true]{background:#C5F545;color:#18200B;border-color:transparent}.ds-chips button:hover{opacity:.9}.ds-chips button:active{opacity:.7}.ds-chips button:focus-visible{outline:2px solid #C5F545;outline-offset:3px}"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat solid card using the shared surface, padding and radius.",
+      "html": "<section class=\"ds-card\"><h3>No product featured</h3><p>Club merchandise selected for this match will appear here.</p></section>",
+      "css": ".ds-card{display:flex;flex-direction:column;gap:16px;padding:20px;border-radius:16px;background:#1C2118;color:#F3F5EE;font:400 16px/24px sans-serif}.ds-card h3{margin:0;font:600 16px/24px sans-serif}.ds-card p{margin:0;color:#BBC4AF}"
+    },
+    {
+      "name": "Labeled Navigation",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "CSS illustration of labeled native bottom navigation, not the navigation runtime.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Main\"><button aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"19\" height=\"18\" rx=\"3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"/><path d=\"M3 9h19M7 1v6M17 1v6\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"/></svg><span>Fixtures</span></button><button><svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" aria-hidden=\"true\"><path d=\"M5 21v-8M11 21V8M17 21V3\" stroke=\"currentColor\" stroke-width=\"3\"/></svg><span>Standings</span></button></nav>",
+      "css": ".ds-nav{display:flex;min-height:80px;padding:8px;background:#1C2118;border-top:1px solid #3B4533}.ds-nav button{flex:1;min-width:48px;min-height:48px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;border:0;background:transparent;color:#A0AC94;font:500 14px/20px sans-serif;cursor:pointer}.ds-nav button[aria-current=page]{color:#C5F545}.ds-nav button[aria-current=page] svg{background:#202918;border-radius:16px;padding:3px 14px}.ds-nav button:hover{opacity:.9}.ds-nav button:active{opacity:.75}.ds-nav button:focus-visible{outline:2px solid #C5F545;outline-offset:-2px}"
+    },
+    {
+      "name": "Score Summary",
+      "kind": "custom",
+      "refersTo": "score-summary",
+      "description": "Score-card structure with explicit unavailable values; no match data invented.",
+      "html": "<section class=\"ds-score\"><p class=\"ds-state\">Match preview · Awaiting match data</p><div class=\"ds-teams\"><div><h3>Home team</h3><strong aria-label=\"Home score unavailable\">—</strong></div><div><h3>Away team</h3><strong aria-label=\"Away score unavailable\">—</strong></div></div><p class=\"ds-time\">Time to be confirmed</p></section>",
+      "css": ".ds-score{padding:24px 20px;border-radius:16px;background:#202918;color:#F3F5EE;font:400 16px/24px sans-serif}.ds-state{margin:0 0 16px;color:#BBC4AF;font:500 14px/20px sans-serif}.ds-teams{display:flex;gap:16px}.ds-teams>div{flex:1;min-width:0;text-align:center}.ds-teams h3{margin:0 0 12px;font:600 16px/24px sans-serif;overflow-wrap:anywhere}.ds-teams strong{font:700 44px/52px sans-serif;font-variant-numeric:tabular-nums}.ds-time{margin:16px 0 0;padding-top:16px;border-top:1px solid #3B4533;text-align:center;color:#BBC4AF;font:400 14px/20px sans-serif}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Matchday Workspace",
+    "overview": "A quiet charcoal shell supports readable fixtures, scores, people and merchandise. Olive surfaces establish context; electric lime identifies priority actions, selection and focus. This system describes the implemented Android React Native UI previews, derived from `mobile/src/theme/tokens.ts`, `mobile/src/components/ui.tsx`, navigation and screen source.\n\nThe 21 screen previews are a visual and navigation implementation. They do not implement backend access, authentication, durable storage, offline persistence, synchronization, checkout or receipt delivery. Preview controls and unavailable messages must remain explicit about that boundary.",
+    "keyCharacteristics": [
+      "Solid dark surfaces with restrained lime emphasis.",
+      "Android system typography and readable numeric hierarchy.",
+      "Labeled controls and written status alongside color.",
+      "Rounded, scrollable surfaces with native interaction feedback.",
+      "Honest empty, loading, error, success and connection previews."
+    ],
+    "rules": [
+      {
+        "name": "The Named State Rule",
+        "body": "State must be understandable from its label or explanation; color alone is insufficient.",
+        "section": "colors"
+      },
+      {
+        "name": "The Restrained Lime Rule",
+        "body": "Reserve lime fills for priority actions and selection. Normal fixture cards retain neutral surfaces.",
+        "section": "colors"
+      },
+      {
+        "name": "The Native Type Rule",
+        "body": "Preserve system font scaling and the shared type roles. Do not disable scaling to fit a composition.",
+        "section": "typography"
+      },
+      {
+        "name": "The Growing Content Rule",
+        "body": "Let text and controls grow and keep task content scrollable. Verify 360x640 dp, rotation, keyboard insets and enlarged system text on Android before claiming those cases pass.",
+        "section": "layout"
+      },
+      {
+        "name": "The Solid Surface Rule",
+        "body": "Use opaque tonal surfaces for readable content. Keep the translucent backdrop confined to modal dismissal space.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use the shared source tokens and components before adding local styling.",
+      "Do retain at least 48 dp action targets, written labels and system font scaling.",
+      "Do keep score, timeline and featured product in the confirmed reading order.",
+      "Do show missing data and unavailable integrations honestly.",
+      "Do verify native layout, TalkBack, keyboard behavior, rotation and enlarged text before recording a visual pass."
+    ],
+    "donts": [
+      "Don't use lime as the sole indication of success, connection or selection.",
+      "Don't invent live data, authentication, persistence or server success in a UI preview.",
+      "Don't add photography, betting, video or social features from the visual reference.",
+      "Don't treat source tests, typechecking or Hermes export as native visual evidence.",
+      "Don't promote an unverified accessibility assumption into a new system rule."
+    ]
+  }
+}

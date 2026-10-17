@@ -9,7 +9,8 @@ root Git repository. Never create a nested `.git` directory here.
 The root `App.tsx` re-exports `src/app/App.tsx`. Feature folders reserve screen
 and domain responsibilities, while services reserve HTTP, secure authentication
 storage, SQLite persistence, realtime, and offline synchronization boundaries.
-These directories currently contain placeholders, not working features. Shared
+Feature directories contain the 21 UI preview screens. Infrastructure remains
+unimplemented except plain-language error mapping. Shared
 components, navigation, hooks, types, and theme each have separate source folders.
 
 Read `SCREEN-PLAN.md` before screen work. Keep feature screens in

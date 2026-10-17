@@ -9,8 +9,14 @@ Maps every FR/NFR ID (spec §3–§4, refined in [`REQUIREMENTS.md`](REQUIREMENT
 - Coverage check: `grep -rhoE --exclude-dir=node_modules "(FR|NFR|API|APP|MOB|BR)-[A-Z0-9.-]+" backend tests mobile | sort -u`.
 
 Mobile readiness review: [mobile/SCREEN-PLAN.md](mobile/SCREEN-PLAN.md). The
-feature/service folders exist as placeholders; the rows below stay Todo until
-behavior and tests exist. This review does not mark MOB/NFR requirements complete.
+21 feature screen designs and navigation exist as a UI-only preview; the rows
+below remain incomplete until required service behavior and acceptance tests exist. This review does not mark MOB/NFR requirements complete.
+
+Frontend prototyping support (MOB-01–12):
+`mobile/tests/fixtures/mockData.ts:createMockData` supplies synthetic screen data;
+`mobile/tests/mockData.test.cjs` checks fixture integrity only. See
+`mobile/MOCK-DATA.md` for screen mapping and limitations. These are not API,
+persistence, server RBAC or device acceptance tests; requirement statuses remain incomplete.
 
 ## Matrix
 | ID | Requirement | Code (planned) | Tests (planned) | Status |
@@ -52,6 +58,23 @@ behavior and tests exist. This review does not mark MOB/NFR requirements complet
 | NFR-5 | Security | `lib/jwt.js`, `http/middleware/*`, `domain/rbac/*`, mobile `src/services/auth/session.ts` (planned) | `tests/api/test_security_api.py`, `tests/api/test_rbac_api.py` | Todo |
 | NFR-7 | Reproducibility | `docker-compose.yml`, `backend/src/index.js` | CI cold start (`.github/workflows/ci.yml`) | Todo |
 | NFR-PERF-01 | Latency bounds | all | `tests/perf/smoke.js`, timing asserts in pytest | Todo |
+| NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js` | `unit/scoring/signature.test.js` (App. A vector 1) | Todo |
+| MOB-01…12 | Mobile screens/offline | `mobile/src/features/**`, `navigation/AppNavigator.tsx`, `app/previewData.ts:getPreviewData` | `mobile/tests/screens.test.cjs` (12 display/navigation checks), `mockData.test.cjs` (6 integrity checks); desk checks pending | In progress (UI only) |
 | NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js:sign` | `unit/scoring/signature.test.js` (App. A vector 1) | Tested |
 | MOB-01…12 | Mobile screens/offline | `mobile/src/**` | desk-check script, optional `tests/e2e-mobile` | Todo |
 | DEL-01…08 | Deliverables | repo root files | Appendix C checklist (REQUIREMENTS §11) | Todo |
+
+
+## Mobile design evidence (UI only, 2026-10-17)
+
+| Scope | Real source/functions | Verification and limits |
+|---|---|---|
+| MOB-01/10 | `auth/LoginScreen.tsx:LoginScreen`, `settings/SettingsScreen.tsx:SettingsScreen`, `navigation/AppNavigator.tsx:AppNavigator`, `screenRegistry.ts:tabsForRole` | Role navigation checks pass; no authentication or durable URL setting. |
+| MOB-02/03/04/05/11 | `fixtures/FixturesScreen.tsx:FixturesScreen`, `matches/MatchDetailScreen.tsx:MatchDetailScreen`, `standings/StandingsScreen.tsx:StandingsScreen`, `clubs/ClubProfileScreen.tsx:ClubProfileScreen` | Mock projection/tenant checks pass; no SQLite/realtime acceptance. |
+| MOB-06 | `store/{Store,ProductDetail,Cart,Checkout,Orders,OrderDetail,Receipt}Screen.tsx` (matching named exports) | Mock prices/cart checks pass; checkout/PDF writes remain disconnected. |
+| MOB-07/08/12 | `roster/{Roster,AddPlayer,RosterAction}Screen.tsx`, `scoring/{ScoringEntry,Compensation}Screen.tsx`, `sync/SyncStatusScreen.tsx` (matching exports) | Visibility and alternate outcome checks pass; no persistent queue/replay acceptance. |
+| NFR-ACC-01 | `theme/tokens.ts:type`, `components/ui.tsx:Button/Field/Screen/Sheet`, `components/Icon.tsx:Icon` | System fonts, scaling, labels, min48dp encoded in source; native layout/TalkBack/rotation checks blocked by emulator RAM. |
+
+Paths in this table are relative to `mobile/src/`. TypeScript and Android Hermes
+export passed. No domain code changed; COVERAGE.json is not regenerated. UI tests
+do not establish server authorization, APP endpoint behavior or judged journeys.

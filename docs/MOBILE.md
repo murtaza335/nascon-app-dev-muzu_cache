@@ -1,8 +1,8 @@
 # Mobile setup and desk-check handoff
 
-The existing app is an Expo/React Native Android scaffold in `mobile/`. Do not
-initialize a second app or nested Git repository. Only a placeholder screen is
-implemented. Product behavior: [REQUIREMENTS](../REQUIREMENTS.md) sections 8-10;
+The existing Expo/React Native Android app in `mobile/` contains all 21 screen
+designs as a mock-data UI preview. Do not initialize a second app or nested Git
+repository. Functional service integration and native acceptance remain pending. Product behavior: [REQUIREMENTS](../REQUIREMENTS.md) sections 8-10;
 structure: [ARCHITECTURE](../ARCHITECTURE.md) section 11; libraries: ADR-017.
 
 ## Setup and current commands
@@ -13,7 +13,10 @@ Use `npm ci` to restore the lockfile. Add only approved dependencies with
 `npx expo install`, recording exact installed versions under ADR-017.
 
 The locked scaffold has Expo 54.0.37 / React Native 0.81.5 / React 19.1.0.
-Navigation, SQLite, Keychain, connectivity and sync are not installed/implemented.
+React Navigation is installed and wired. SQLite, Keychain, device connectivity
+detection and sync remain unimplemented. Settings validates a server URL in memory.
+Use Login → Explore screen designs → Settings → Screen Studio to inspect roles
+and presentation states. All writes clearly report that integration is unavailable.
 The current native setup script is machine-specific, and an Android build is
 not verified by this documentation review. Native directories are generated and
 ignored; configuration changes must be reproducible from tracked files.
