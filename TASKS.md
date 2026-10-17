@@ -20,7 +20,7 @@ Backend only. Mobile is tracked separately in the plan.
 | 9 Queue/worker/realtime | Done | worker verified against an S3 stub; real MinIO image not pulled here |
 | 10 Quality gate | Mostly done | COVERAGE.json 97–100 % per area; static guards; CI updated. **Not done:** cold `docker compose up --build` (sandbox cannot reach registries), APK, push windows, Appendix C sign-off |
 
-Totals at this point: 204 unit tests, 377 API tests (with `SEED_DEMO_DATA=true`; 349 pass + 28 skip with it off).
+Totals at this point: 204 unit tests, 377 API tests (with `SEED_DEMO_DATA=true`; with it off, the grader configuration: 340 pass + 37 skip, the skips being the mobile-API and realtime tests that need demo data).
 
 ## Working rules (token-saving)
 1. **Read only what the task cites.** Open the listed REQUIREMENTS sections by line range, not whole files. Do not re-read files you just edited.
