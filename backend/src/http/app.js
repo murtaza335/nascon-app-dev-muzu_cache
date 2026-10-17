@@ -7,6 +7,7 @@ const healthRoutes = require('../routes/health');
 const resetRoutes = require('../routes/audit/reset');
 const sportsRoutes = require('../routes/audit/sports');
 const eventsRoutes = require('../routes/audit/events');
+const leaguesRoutes = require('../routes/audit/leagues');
 const rbacRoutes = require('../routes/audit/rbac');
 const pingRoutes = require('../routes/api/ping');
 const { rateLimit } = require('./middleware/rateLimit');
@@ -24,6 +25,7 @@ function createApp() {
   app.use('/audit/v1', rbacRoutes);
   app.use('/audit/v1', sportsRoutes);
   app.use('/audit/v1', eventsRoutes);
+  app.use('/audit/v1', leaguesRoutes);
   app.use('/api/v1', rateLimit, pingRoutes);
 
   app.use(notFoundHandler);

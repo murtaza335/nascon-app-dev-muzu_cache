@@ -21,14 +21,14 @@ behavior and tests exist. This review does not mark MOB/NFR requirements complet
 | FR-1.1-04 | Event sourcing, compensation, score projection (API-06/07) | `services/events.js:appendEvent`, `services/score.js:getScore`, `repos/events.js`, `routes/audit/events.js` | `tests/api/test_events_api.py` | Tested |
 | FR-1.1-05 | No hard-coded sport logic | CI grep step (`.github/workflows/ci.yml`) | CI job | Todo |
 | FR-1.2-01 | Seasons/divisions/stages (P2) | `services/leagueStructure.js` | `unit/…` | Todo |
-| FR-1.2-02 | Register league (API-05) | `services/leagues.js`, `routes/audit/leagues.js` | `tests/api/test_leagues_api.py` | Todo |
+| FR-1.2-02 | Register league (API-05) | `domain/leagues/leagueSchema.js:validateLeague`, `services/leagues.js:registerLeague`, `routes/audit/leagues.js` | `tests/api/test_leagues_api.py` | Tested |
 | FR-1.3-01 | Round-robin | `domain/fixtures/roundRobin.js` | `unit/fixtures/roundRobin.test.js`, `tests/api/test_fixtures_api.py` | Todo |
 | FR-1.3-02 | Swiss | `domain/fixtures/swiss.js`, `domain/fixtures/blossom.js` | `unit/fixtures/swiss.test.js`, `unit/fixtures/blossom.test.js` | Todo |
 | FR-1.3-03 | Single elimination | `domain/fixtures/singleElim.js` | `unit/fixtures/singleElim.test.js` | Todo |
 | FR-1.3-04 | Double elimination | `domain/fixtures/doubleElim.js` | `unit/fixtures/doubleElim.test.js` | Todo |
 | FR-1.3-05 | Rescheduling conflicts (P2) | `domain/fixtures/conflicts.js` | `unit/fixtures/conflicts.test.js` | Todo |
 | FR-1.3-06 | Match status machine + broadcast | `domain/scoring/eventRules.js`, `services/matches.js`, `realtime/ws.js` | `tests/api/test_events_api.py`, `tests/api/test_realtime.py` | Todo |
-| FR-1.4-01 | Standings (API-08) | `domain/standings/*.js`, `services/standings.js` | `unit/standings/*.test.js`, `tests/api/test_standings_api.py` | Todo |
+| FR-1.4-01 | Standings (API-08) | `domain/standings/{table,tiebreak,qualification,nrr,index}.js`, `lib/pyround.js`, `services/standings.js:getStandings` | `unit/standings/*.test.js`, `tests/api/test_standings_api.py` | Tested |
 | FR-2.1-01 | Club profile | `services/clubs.js`, `routes/api/clubs.js` | `tests/api/test_app_clubs.py` | Todo |
 | FR-2.1-02 | Tenant branding + isolation | `seed/baseline.js`, `domain/rbac/policy.js` | `tests/api/test_rbac_api.py` | Todo |
 | FR-2.2-01 | Roster setup (API-09) | `services/roster.js`, `routes/audit/roster.js` | `tests/api/test_roster_api.py` | Todo |

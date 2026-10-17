@@ -20,3 +20,18 @@ async function insertEvent(client, e) {
 }
 
 module.exports = { listByMatch, getEvent, insertEvent };
+
+// All events of many matches in one query, ordered for projection (ARCHITECTURE §6.2).
+async function listByMatches(matchIds, db = { query }) {
+  if (!matchIds.length) return new Map();
+  const { rows } = await db.query(
+    'SELECT match_id, event_id, sequence, type, payload, signature FROM match_events WHERE match_id = ANY($1) ORDER BY match_id, sequence', [matchIds]);
+  const byMatch = new Map();
+  for (const r of rows) {
+    if (!byMatch.has(r.match_id)) byMatch.set(r.match_id, []);
+    byMatch.get(r.match_id).push(r);
+  }
+  return byMatch;
+}
+
+module.exports.listByMatches = listByMatches;
