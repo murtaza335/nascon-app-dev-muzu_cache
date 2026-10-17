@@ -45,6 +45,8 @@ const E = Object.freeze({
   PLAYER_ON_LOAN: { status: 409, code: 'PLAYER_ON_LOAN', message: 'Player is currently on loan' },
   SQUAD_FULL: { status: 409, code: 'SQUAD_FULL', message: 'Squad is full' },
   MIN_POSITION_VIOLATION: { status: 409, code: 'MIN_POSITION_VIOLATION', message: 'Squad would fall below the required positions' },
+  // Appendix B: appears only inside an offline-sync per-action result, never as an HTTP error body.
+  INVALID_BASE_VERSION: { status: 409, code: 'INVALID_BASE_VERSION', message: 'base_version is ahead of the server' },
   SCHEDULE_CONFLICT: { status: 409, code: 'SCHEDULE_CONFLICT', message: 'Schedule conflict' },
   PAYLOAD_TOO_LARGE: { status: 413, code: 'PAYLOAD_TOO_LARGE', message: 'Request body is too large' },
   RATE_LIMITED: { status: 429, code: 'RATE_LIMITED', message: 'Too many requests' },

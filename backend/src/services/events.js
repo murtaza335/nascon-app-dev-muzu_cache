@@ -121,4 +121,4 @@ async function appendEvent(body, rawBody) {
   return withTx((client) => appendInTx(client, ev, canonicalPayload));
 }
 
-module.exports = { appendEvent, appendInTx, validateEvent };
+module.exports = { appendEvent, appendInTx, validateEvent, requestHash };

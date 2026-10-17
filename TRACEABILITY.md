@@ -46,7 +46,7 @@ behavior and tests exist. This review does not mark MOB/NFR requirements complet
 | FR-SYS-01 | Health (API-01) | `routes/health.js:GET /health` | `tests/api/test_platform_api.py::test_fr_sys_01_health_exact_body` | Tested |
 | FR-SYS-02 | Reset + baseline (API-02) | `services/reset.js:resetAll`, `seed/baseline.js:seedBaseline` | `tests/api/test_platform_api.py::test_fr_sys_02_*` | Tested |
 | FR-SYS-03 | Rate-limited ping (API-16) | `http/middleware/rateLimit.js`, `lib/rateLimiter.js`, `routes/api/ping.js` | `unit/lib/rateLimiter.test.js`, `tests/api/test_security_api.py` | Tested |
-| FR-OFF-01 | Offline sync (API-17, APP-40) | `domain/sync/resolve.js`, `services/sync.js` | `unit/sync/resolve.test.js`, `tests/api/test_offline_sync_api.py` | Todo |
+| FR-OFF-01 | Offline sync (API-17, APP-40) | `domain/sync/resolve.js`, `services/sync.js:process`, `routes/audit/offlineSync.js` | `unit/sync/resolve.test.js`, `tests/api/test_offline_sync_api.py` | Tested (APP-40 pending) |
 | NFR-3 | Concurrency correctness | `services/store.js:checkoutInTx` | `tests/api/test_checkout_api.py::test_nfr3_*` (burst 20 x20, same-id parallel, multi-item) | Tested |
 | NFR-4 | Offline tolerance | `mobile/src/services/storage/*`, `mobile/src/services/sync/*` (planned) | `tests/api/test_offline_sync_api.py`, desk-check script in `docs/MOBILE.md` | Todo |
 | NFR-5 | Security | `lib/jwt.js`, `http/middleware/*`, `domain/rbac/*`, mobile `src/services/auth/session.ts` (planned) | `tests/api/test_security_api.py`, `tests/api/test_rbac_api.py` | Todo |
