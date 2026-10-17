@@ -28,6 +28,10 @@ docker compose up -d --build
 curl -s -X POST localhost:8080/audit/v1/reset                      # baseline: tenants, sports, leagues, clubs, users, stock
 ```
 
+Optional realistic mock data (a small league with results, a live match, rosters, shop items, orders):
+`./scripts/seed-mock-data.sh` (safe to re-run; `POST /audit/v1/reset` removes it). It writes through the app's own services,
+so events are signed and caches refresh. It is separate from `SEED_DEMO_DATA` below and can be used with it off.
+
 For the desk check (judge phone), add demo fixtures, rosters and products first: `SEED_DEMO_DATA=true docker compose up -d --build`
 (then `POST /audit/v1/reset` once). **Leave it off for the grader.** The compose project is `nascon`.
 

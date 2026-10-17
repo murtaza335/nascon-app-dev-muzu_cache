@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { roleNames, useApp } from '../../app/AppContext';
-import { Avatar, Badge, Button, Card, Sheet, Row, Screen, Section, Select, T, ui } from '../../components/ui';
+import { Avatar, Badge, Button, Card, Dialog, Row, Screen, Section, Select, T, ui } from '../../components/ui';
 import type { AppNavigation } from '../../navigation/routes';
 import { colors as c } from '../../theme/tokens';
 export function AccountScreen() {
@@ -13,6 +13,6 @@ export function AccountScreen() {
     {['super_admin','league_organizer','club_manager'].includes(p.role)&&<Section title="Your workspace"><Row title="Management" detail="Scoring, roster and order fulfillment" icon="settings" onPress={()=>n.navigate('Management')}/></Section>}
     <Section title="Your activity"><Card><Row title="Orders" detail="Purchases and receipts" icon="store" onPress={() => n.navigate('Orders')} /><View style={ui.divider} /><Row title="Sync status" detail="Pending work and results" icon="sync" onPress={() => n.navigate('SyncStatus')} /><View style={ui.divider} /><Row title="Settings" detail="Server and appearance" icon="settings" onPress={() => n.navigate('Settings')} /></Card></Section>
     <Button label="Sign out" kind="danger" onPress={()=>setConfirm(true)}/>
-    <Sheet title="Sign out?" open={confirm} onClose={()=>setConfirm(false)}><T>{p.pendingCount ? `You have ${p.pendingCount} pending actions. Keep them for your next sign-in or discard them.` : 'Your cart and cached account data will be cleared from this device.'}</T><Button label={p.pendingCount?'Sign out and keep pending work':'Sign out'} onPress={()=>void p.logout(false)}/>{p.pendingCount>0&&<Button label="Discard pending work and sign out" kind="danger" onPress={()=>void p.logout(true)}/>}<Button label="Cancel" kind="quiet" onPress={()=>setConfirm(false)}/></Sheet>
+    <Dialog title="Sign out?" tone={p.pendingCount?'warning':'neutral'} open={confirm} onClose={()=>setConfirm(false)} body={p.pendingCount ? `You have ${p.pendingCount} pending actions. Keep them for your next sign-in or discard them.` : 'Your cart and cached account data will be cleared from this device.'}><Button label={p.pendingCount?'Sign out and keep pending work':'Sign out'} onPress={()=>void p.logout(false)}/>{p.pendingCount>0&&<Button label="Discard pending work and sign out" kind="danger" onPress={()=>void p.logout(true)}/>}<Button label="Cancel" kind="quiet" onPress={()=>setConfirm(false)}/></Dialog>
   </Screen>;
 }

@@ -11,7 +11,7 @@ export function ClubProfileScreen() {
   const [clubId, setClubId] = useState(param?.clubId || p.data.user?.club_id || p.data.clubs[0]?.club_id);
   const club = p.data.clubs.find(x => x.club_id === clubId) ?? p.data.clubs[0];
   const canManage = p.role === 'super_admin' || (p.role === 'club_manager' && club?.club_id === p.data.user?.club_id);
-  return <Screen title="Club & community" back={route.name === 'ClubProfile'} stateful action={<Button label="Account" kind="quiet" onPress={() => n.navigate('Account')} />}>
+  return <Screen title="Club & community" back={route.name === 'ClubProfile'} stateful skeleton="profile" action={<Button label="Account" kind="quiet" onPress={() => n.navigate('Account')} />}>
     {p.data.clubs.length > 1 && <Select label="Club" value={club?.club_id} options={p.data.clubs.map(x => ({ value:x.club_id,label:x.name }))} onChange={setClubId} />}
     <View style={{ alignItems: 'center', gap: 16, paddingVertical: 12 }}><Avatar name={club?.name} size={76} /><T variant="heading" style={{ textAlign:'center' }}>{club?.name || 'No club selected'}</T><T color={c.secondary}>{p.data.tenant?.name || ''}</T>{club && <Badge label={`${club.roster.length} active players`} />}</View>
     {canManage && <Button label="Manage roster" icon="roster" onPress={() => p.role==='super_admin' ? n.navigate('RosterManagement', { clubId: club?.club_id }) : n.navigate('Main', { screen:'Roster' })} />}
