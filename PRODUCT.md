@@ -1,3 +1,8 @@
+> Current status (2026-10-17): earlier prototype descriptions below are historical.
+> Real APIs, APP-03 discovery, Keychain/SQLite, NetInfo and server PDFs are wired.
+> Mock data/engine, Screen Studio and unsupported P2 controls are removed.
+> Native acceptance remains pending; see ADR-022 and mobile/README.md.
+
 # NaSCon Sports
 
 <!-- impeccable:product-schema 1 -->

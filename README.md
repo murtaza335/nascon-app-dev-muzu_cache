@@ -1,7 +1,7 @@
 # NaSCon '26 Part I: Multi-Sport League & Club Operations Platform
 
 > Mobile handoff (2026-10-17): `mobile/` now contains an Expo/React Native
-> UI preview with all 21 screen designs. Use [mobile/README.md](mobile/README.md)
+> real-API app with role-aware screens; native acceptance remains pending. Use [mobile/README.md](mobile/README.md)
 > for setup/exploration and [mobile/SCREEN-PLAN.md](mobile/SCREEN-PLAN.md) for scope.
 > The backend starter examples below describe legacy behavior, not the target
 > contracts. [REQUIREMENTS.md](REQUIREMENTS.md) and
@@ -15,7 +15,7 @@ A generic, domain-free starter for the 8-hour NaSCon '26 app-dev competition:
 - **Backend:** Node 20 + Express 5, PostgreSQL 16, Redis 7 (cache-aside), all in one root `docker-compose.yml` that the autograder runs as-is.
 - **Conventions baked in:** one consistent error body, strict input validation, malformed id is 400 and missing id is 404, conflicts are 409, ISO-8601 UTC timestamps, `snake_case` JSON.
 - **Test harness:** `node:test` unit tests, pytest API test vectors tagged with requirement IDs, an optional Selenium smoke test, a k6 smoke test and a CI workflow that mirrors the grader.
-- **Mobile:** All 21 React Native Android screen designs and role-aware navigation exist as a UI-only mock-data preview; backend, persistence and native acceptance remain pending ([mobile setup](mobile/README.md), [desk-check checklist](docs/MOBILE.md)).
+- **Mobile:** React Native Android screens use real backend APIs, Keychain sessions and SQLite cache/outbox; native device acceptance remains pending ([mobile setup](mobile/README.md), [desk-check checklist](docs/MOBILE.md)).
 
 The only domain code is `backend/src/routes/example.js` (an `items` CRUD), which shows every convention. **Replace it on the day.**
 

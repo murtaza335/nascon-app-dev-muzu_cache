@@ -59,20 +59,10 @@ pytest vectors per slice; `run_tests.sh` + `scripts/coverage-areas.js` → COVER
 
 ### Mobile track (MOB)
 
-Readiness/design slice (2026-10-17): root/mobile Markdown reviewed; existing
-feature/service structure retained. User approved the charcoal/olive/lime brief
-and authorized UI-only implementation before backend integration. All 21 screen
-components, typed role-aware navigation, shared theme/controls and Screen Studio
-now exist. Synthetic data from the separate session is connected through a
-read-only display adapter. TypeScript, 12 screen checks, 6 fixture checks and the
-Android Hermes export pass. Native captures remain blocked by emulator RAM.
-
-These are screen previews, not completed functional slices: Keychain login,
-transport, SQLite cache/outbox, realtime, Sync, receipt PDFs and APK acceptance
-remain pending. The table below remains the functional delivery sequence;
-original project priorities, contracts and open-question defaults are unchanged.
-See [screen plan](../mobile/SCREEN-PLAN.md), [approved brief](../mobile/DESIGN-BRIEF.md)
-and [preview instructions](../mobile/README.md).
+Current mobile integration: real APIs, Keychain/SQLite, discovery, persistent queue,
+checkout/PDF and navigation are implemented. Mock engine/data, Screen Studio and
+unsupported simulations are removed. Native acceptance pending (docs/MOBILE.md).
+The schedule below is historical planning.
 
 | Time | Deliverable |
 |---|---|

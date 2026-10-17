@@ -1,8 +1,8 @@
-// Shared UI vocabulary; transport/auth behavior is connected in a later slice.
+// Shared plain-language server error vocabulary.
 export const errorMessages: Record<string,string> = {
   VALIDATION_ERROR:'Please check the highlighted details.', UNKNOWN_EVENT_TYPE:'That event is not available for this match.', INVALID_DISCOUNT_CODE:'That discount code is not valid.',
   UNAUTHENTICATED:'Your session expired, please sign in again.', INVALID_CREDENTIALS:'Check your email and password and try again.', FORBIDDEN:'You do not have permission to do that.',
-  PAYMENT_DECLINED:'The payment was declined. Try another mock payment outcome.', PAYMENT_CAPTURE_FAILED:'The payment could not be completed. Your items have not been purchased.',
+  PAYMENT_DECLINED:'The payment was declined. Please try again.', PAYMENT_CAPTURE_FAILED:'The payment could not be completed. Your items have not been purchased.',
   SPORT_NOT_FOUND:'That sport is no longer available.', MATCH_NOT_FOUND:'That match could not be found.', LEAGUE_NOT_FOUND:'That competition could not be found.', EVENT_NOT_FOUND:'That event could not be found.', PLAYER_NOT_FOUND:'That player could not be found.', SQUAD_NOT_FOUND:'That squad could not be found.', VARIANT_NOT_FOUND:'That product option is no longer available.',
   SPORT_EXISTS:'A sport with that identifier already exists.', LEAGUE_EXISTS:'A competition with that identifier already exists.', MATCH_EXISTS:'A match with that identifier already exists.', DUPLICATE_EVENT_ID:'That event identifier has already been used.', DUPLICATE_ORDER_ID:'That order identifier has already been used.', DUPLICATE_REQUEST_ID:'That request identifier has already been used.',
   ILLEGAL_TRANSITION:'That change is not available from the current status.', MATCH_NOT_IN_PROGRESS:'Start the match before recording this event.', TIE_NOT_ALLOWED:'A winner must be recorded before this match can end.', INNINGS_COMPLETE:'This scoring phase is complete.', SERIES_ALREADY_DECIDED:'This series has already been decided.', INVALID_COMPENSATION:'That event cannot be corrected.', NO_VALID_PAIRING:'No valid pairing is available for this round.',

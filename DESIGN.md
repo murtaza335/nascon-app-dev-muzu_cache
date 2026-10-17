@@ -2,16 +2,16 @@
 name: NaSCon Sports
 description: A charcoal, olive and lime Android matchday workspace.
 colors:
-  background: "#11150F"
-  surface: "#1C2118"
-  raised: "#262D21"
-  olive: "#202918"
-  divider: "#3B4533"
-  outline: "#74806A"
-  text: "#F3F5EE"
-  secondary: "#BBC4AF"
-  muted: "#A0AC94"
-  accent: "#C5F545"
+  background: "#151816"
+  surface: "#202421"
+  raised: "#2B302C"
+  olive: "#303A2C"
+  divider: "#3C443E"
+  outline: "#7C887F"
+  text: "#F1F3EF"
+  secondary: "#C1C9C1"
+  muted: "#ABB6AC"
+  accent: "#B9D98C"
   on-accent: "#18200B"
   success: "#A8DAB5"
   success-bg: "#1D3022"
@@ -251,7 +251,7 @@ Primary, secondary, quiet and danger variants share strong text, centered conten
 
 ### Chips
 
-Selected chips use lime with dark text. Unselected chips use the surface tone, a visible outline and secondary text. Labels and accessibility selection state accompany color.
+Selected chips use muted olive, readable text and an accent outline. Unselected chips use the surface tone, a visible outline and secondary text. Labels and accessibility selection state accompany color.
 
 ### Cards / Containers
 
@@ -263,7 +263,7 @@ Visible labels sit above fields. Focus changes the outline to lime; an error tak
 
 ### Navigation
 
-The bottom bar uses a solid surface, divider and labeled native-geometry icons. Active text/icons turn lime, with an olive icon capsule. Back, Settings and connection actions have accessible labels. Settings is reachable before entering the preview. The connection strip explicitly says Preview and names Online, Offline or Syncing.
+The bottom bar uses a solid surface, divider and labeled native-geometry icons. Active text/icons turn lime, with an olive icon capsule. Back, Settings and connection actions have accessible labels. Settings is reachable before entering the preview. The connection strip names Online, Offline or Syncing and pending-action counts.
 
 ### Score and timeline
 
@@ -294,3 +294,9 @@ The sidecar's HTML/CSS examples are documentation translations of native compone
 - **Don't** add photography, betting, video or social features from the visual reference.
 - **Don't** treat source tests, typechecking or Hermes export as native visual evidence.
 - **Don't** promote an unverified accessibility assumption into a new system rule.
+
+## Production refinement (2026-10-17)
+Neutral surfaces dominate; muted olive marks selection, lime marks primary actions.
+Semantic colors resolve at render time; device appearance is the initial preference.
+Account/Settings expose sign-out with pending-work retention/discard. Preview states,
+demo credential pickers and unsupported controls are gone. Native screenshots remain pending.

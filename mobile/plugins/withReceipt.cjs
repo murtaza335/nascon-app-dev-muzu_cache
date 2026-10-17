@@ -5,8 +5,8 @@ const path = require('node:path');
 const source = `package com.nascon.sports;
 import android.app.Activity;
 import android.content.Intent;
-import android.graphics.Paint;
-import android.graphics.pdf.PdfDocument;
+import android.util.Base64;
+
 import android.net.Uri;
 import androidx.core.content.FileProvider;
 import com.facebook.react.bridge.*;
@@ -38,24 +38,16 @@ public class ReceiptPackage implements ReactPackage {
       });
     }
     public String getName(){return "NaSConReceipt";}
-    @ReactMethod public void exportReceipt(ReadableArray lines, String filename, boolean download, Promise promise) {
+    @ReactMethod public void exportReceipt(String base64, String filename, boolean download, Promise promise) {
       Activity activity=getReactApplicationContext().getCurrentActivity();
       if(activity==null){promise.reject("NO_ACTIVITY","Open the app before exporting a receipt.");return;}
       if(pending!=null){promise.reject("PDF_BUSY","Finish saving the previous receipt first.");return;}
       try {
         File folder=new File(getReactApplicationContext().getCacheDir(),"receipts");folder.mkdirs();
         File file=new File(folder,filename.replaceAll("[^a-zA-Z0-9_.-]","_"));
-        try(PdfDocument document=new PdfDocument()) {
-          Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);paint.setTextSize(12);paint.setColor(android.graphics.Color.rgb(27,33,23));
-          int pageNumber=1; PdfDocument.Page page=document.startPage(new PdfDocument.PageInfo.Builder(595,842,pageNumber).create());int y=48;
-          for(int i=0;i<lines.size();i++){
-            String text=lines.getString(i);if(text==null)text="";
-            while(text.length()>0){int end=paint.breakText(text,true,499,null);if(end<=0)end=1;
-              if(y>790){document.finishPage(page);page=document.startPage(new PdfDocument.PageInfo.Builder(595,842,++pageNumber).create());y=48;}
-              page.getCanvas().drawText(text.substring(0,end),48,y,paint);text=text.substring(end);y+=20;
-            }y+=8;
-          }document.finishPage(page);try(FileOutputStream output=new FileOutputStream(file)){document.writeTo(output);}
-        }
+        byte[] bytes=Base64.decode(base64,Base64.DEFAULT);
+        if(bytes.length<5 || !new String(bytes,0,5,"US-ASCII").equals("%PDF-"))throw new IOException("Invalid PDF");
+        try(FileOutputStream output=new FileOutputStream(file)){output.write(bytes);}
         if(download){
           pending=promise;pendingFile=file;Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("application/pdf");intent.putExtra(Intent.EXTRA_TITLE,file.getName());activity.startActivityForResult(intent,REQUEST);
         }else{

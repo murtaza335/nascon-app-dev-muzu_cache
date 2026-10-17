@@ -1,6 +1,5 @@
 // Presentation models: data injection is intentionally independent of transport.
 export type Role = 'super_admin' | 'league_organizer' | 'club_manager' | 'player' | 'viewer';
-export type Presentation = 'content' | 'loading' | 'empty' | 'error' | 'success';
 export type Connection = 'online' | 'offline' | 'syncing';
 export type League = { league_id: string; name: string; sport_id?: string; tenant_id?: string; season?: string; format?: string };
 export type Player = { player_id: string; name: string; position: string; squad_id?: string; role?: string; on_loan?: boolean; club_id?: string };
@@ -14,7 +13,6 @@ export type Order = { order_id: string; customer_id?: string; club_id?: string; 
 export type QueueItem = { action_id: string; label: string; queued_at: string; status: 'pending' | 'applied' | 'rejected' | 'duplicate' | 'deferred'; reason?: string };
 export type HistoryEntry = { audit_id: string; action: string; effective_date: string; who: string; why: string; state: string };
 export type CartLine = { productId: string; name: string; variant: Variant; quantity: number };
-export type SyncScenario = 'pending' | 'applied' | 'rejected' | 'duplicate';
 export type ScreenData = {
   tenant: { name: string; tenant_id: string; logo_url?: string | null; colors?: { primary: string; secondary: string } } | null;
   user: { user_id?: string; role?: Role; tenant_id?: string | null; display_name: string; email: string; club_id?: string | null; player_id?: string | null; league_ids?: string[] } | null;
@@ -24,6 +22,6 @@ export type ScreenData = {
   eventTypes: { value: string; label: string; points?: number }[]; lastUpdated: string | null;
   tenants?: NonNullable<ScreenData['tenant']>[];
   squads?: { squad_id: string; name: string; club_id: string; league_id: string }[];
-  initialCart?: CartLine[];
-  teamLinks?: { team_id: string; squad_id: string }[];
+  sports?: { sport_id: string; name: string; config: { scoring_events: Record<string, { points?: number }>; roster?: { required_positions: Record<string, number> } } }[];
+  registrations?: { player_id: string; league_id: string; squad_id: string | null; role: string; on_loan: boolean }[];
 };

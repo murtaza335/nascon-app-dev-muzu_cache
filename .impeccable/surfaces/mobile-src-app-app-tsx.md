@@ -7,15 +7,15 @@ related_targets: []
 
 # Mobile screen implementation
 
-Scope: the approved 21-screen inventory, with shell/Login/Fixtures/Match Detail leading; native Android, Operate mode. Backend and mock data are separate follow-ups. Use an empty typed preview adapter and honest unavailable states until data is supplied.
+Scope: the approved 21-screen inventory, with shell/Login/Fixtures/Match Detail leading; native Android, Operate mode. Real API integration now replaces mock runtime. Use server data and honest loading/empty/error/offline states.
 
 ## Direction contract
 
 THESIS: A readable, role-aware matchday workspace; priority is explicit score, league and connection context rather than a decorative sports feed.
 
-OWN-WORLD: User-pinned charcoal #11150F, olive surfaces #1C2118/#262D21 and lime #C5F545; Roboto type roles, 16dp padding, 48dp targets, solid rounded native surfaces.
+OWN-WORLD: User-pinned charcoal #151816, olive surfaces #202421/#2B302C and lime #B9D98C; Roboto type roles, 16dp padding, 48dp targets, solid rounded native surfaces.
 
-STORY: Sign in or deliberately enter design preview, land on Fixtures, select league/match, read score then timeline then product; authorized roles reach management screens.
+STORY: Sign in against the configured backend, land on Fixtures, select league/match, read score then timeline then product; authorized roles reach management screens.
 
 FIRST VIEWPORT: Login leads with identity, clear heading and labeled fields; Fixtures shows app bar, connectivity, league/filter controls then chronological rows. Match Detail leads with team/score/state before timeline. One lime primary action per group; text wraps at 360x640 and enlarged font sizes.
 

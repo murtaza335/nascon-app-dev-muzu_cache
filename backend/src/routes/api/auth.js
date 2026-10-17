@@ -15,6 +15,10 @@ publicRouter.post('/auth/login', async (req, res, next) => {
 });
 
 // APP-02
+protectedRouter.get('/context', async (req, res, next) => {
+  try { res.status(200).json(await require('../../services/appReads').context(req.principal, req.query.tenant_id)); } catch (err) { next(err); }
+});
+
 protectedRouter.get('/me', async (req, res, next) => {
   try { res.status(200).json(await auth.me(req.principal)); } catch (err) { next(err); }
 });

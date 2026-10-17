@@ -120,3 +120,16 @@ module.exports.getTenant = getTenant;
 module.exports.getUserById = getUserById;
 module.exports.squadWithClub = squadWithClub;
 module.exports.updatePlayer = updatePlayer;
+
+// APP-03: directory data is scoped before it leaves SQL; never exposes users.
+async function context(tenantId, db = { query }) {
+  const params = [tenantId];
+  const tenants = await db.query('SELECT tenant_id, name, logo_url, colors FROM tenants WHERE ($1::text IS NULL OR tenant_id = $1) ORDER BY tenant_id', params);
+  const clubs = await db.query('SELECT club_id, tenant_id, name FROM clubs WHERE ($1::text IS NULL OR tenant_id = $1) ORDER BY name, club_id', params);
+  const squads = await db.query('SELECT league_id, squad_id, club_id, tenant_id, name FROM squads WHERE ($1::text IS NULL OR tenant_id = $1) ORDER BY league_id, squad_id', params);
+  const sports = await db.query('SELECT sport_id, name, config FROM sports WHERE sport_id IN (SELECT sport_id FROM leagues WHERE ($1::text IS NULL OR tenant_id = $1)) ORDER BY sport_id', params);
+  const players = await db.query('SELECT p.player_id, p.name, p.position, p.club_id FROM players p JOIN clubs c ON c.club_id = p.club_id WHERE ($1::text IS NULL OR c.tenant_id = $1) ORDER BY p.player_id', params);
+  const registrations = await db.query('SELECT r.player_id, r.league_id, r.squad_id, r.role, (r.parent_squad_id IS NOT NULL) AS on_loan FROM registrations r JOIN leagues l ON l.league_id = r.league_id WHERE ($1::text IS NULL OR l.tenant_id = $1) ORDER BY r.player_id, r.league_id', params);
+  return { tenants: tenants.rows, clubs: clubs.rows, squads: squads.rows, sports: sports.rows, players: players.rows, registrations: registrations.rows };
+}
+module.exports.context = context;

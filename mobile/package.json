@@ -28,11 +28,9 @@
     "android:device": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-device.ps1",
     "android:stop": "cd android && gradlew.bat --stop",
     "typecheck": "tsc --noEmit",
-    "test:mock-data": "node --test tests/mockData.test.cjs",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "test:screens": "node --test tests/screens.test.cjs",
-    "test:journeys": "node --test tests/mockJourneys.test.cjs",
+    "test:screens": "node --test tests/api.test.cjs",
     "test": "node --test tests/*.test.cjs"
   },
   "private": true

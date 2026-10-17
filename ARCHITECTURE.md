@@ -580,7 +580,7 @@ One line per request: `METHOD path status ms request_id` (current). Errors are l
 | Python-exact float canonicalization | Signature mismatch on decimal payloads | Lossless lexemes (Node 22 reviver `context.source`); unit tests |
 | Single API instance (in-memory rate limit, WS hub) | Not horizontally scalable | Acceptable for Phase I; move to Redis if Part II demands scale |
 | MinIO image pull adds build time | Could approach the 10 min budget on a slow network | Pin a tag; measure a cold pull; MinIO is not on the health path |
-| Mobile APP integration gaps (tenant/club/squad discovery and scoring config reads) | Screens cannot infer selectable resources from documented contracts alone | Coordinate contracts with backend owner before functional implementation; see mobile/SCREEN-PLAN.md |
+| Mobile native acceptance | Real API runtime requires fresh Android build; host memory exhausted | Complete docs/MOBILE.md checklist |
 | RN native modules + blocked Gradle hosts | APK build failure on campus | Use only modules warmed in the Gradle cache; build the APK early (by 13:30) |
 | Coverage below 85% | Loses 10% of each area | Pure domain modules; coverage gate in `run_tests.sh` |
 
@@ -619,3 +619,30 @@ Additional scoring models (add to the `scoring_model` enum + projection strategy
 6. `.gitignore` `*.apk` → add `!mobile/release/app-release.apk`.
 7. Root `run_tests.sh` + `COVERAGE.json` (spec names); keep `scripts/run-tests.sh` as the API test runner or merge.
 8. Timestamps without milliseconds.
+
+### Implemented mobile API runtime (2026-10-17, ADR-022)
+
+`mobile/src/app/AppContext.tsx` replaces PreviewContext/mock world. New modules in
+existing directories: `services/api/client.ts` (10s timeout/pagination), `models.ts`
+(response mapping), `commands.ts` (write payloads), `services/auth/session.ts`
+(Keychain), `services/storage/storage.ts` (SQLite), `types/models.ts` (display models).
+No runtime dependencies, environment variables, services or ports changed.
+
+SQLite `nascon-api-v1.sqlite` contains `app_state(scope TEXT PRIMARY KEY, payload TEXT)`.
+Workspace keys encode server/user/selected tenant. Preferences/device ID are separate
+rows. Cache, pending API-17 envelopes, outcomes, cart and unresolved checkout ID commit
+in one snapshot. Tokens reside only in Keychain service
+`com.nascon.sports.api-session.v1`; old mock storage is never read. Logout clears
+cache/cart and optionally pending work. Scope changes never replay another scope.
+WebSocket notifications trigger reads; foreground polling/retry is 30s.
+
+APP-03 is an uncached directory read in existing api/auth route, appReads service
+and app repo. P6 club.read policy and parameterized tenant filters protect resource
+metadata/sport configs/player profiles. No new policy action or schema is introduced.
+APP-40 submits score/roster writes through existing authorized services. The Android
+PDF adapter opens/saves authenticated server bytes, never local substitute receipts.
+
+Limitations: sequential whole-workspace loading may need incremental reads for
+large tenants. Admin order filtering uses visible variants because APP-53 omits
+club_id. Unsupported P2 schedule/configuration/catalogue operations and existing-player
+role editing are absent from navigation. Native acceptance/full stack remain pending.

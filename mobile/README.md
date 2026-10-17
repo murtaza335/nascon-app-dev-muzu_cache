@@ -1,171 +1,44 @@
 # NaSCon Sports Mobile
 
-Expo + React Native + strict TypeScript Android app. All 21 screen designs are
-implemented as an in-memory preview, using the approved charcoal/olive/lime theme.
-This folder belongs to the existing root Git repository; do not initialize a nested repository.
+Android app using authenticated `/api/v1` APIs. Mobile mock datasets, local login,
+simulated results and Screen Studio are removed. The competition's server mock
+payment gateway remains the only payment provider.
 
-The documentation review and next screen inventory are in
-[`SCREEN-PLAN.md`](SCREEN-PLAN.md). The existing feature/service layout is retained;
-screen designs are present; service integration is the next phase. Canonical
-structure: [`ARCHITECTURE.md` section 11](../ARCHITECTURE.md#11-client-architecture-mobile-adr-017).
+## Run
 
-Locked scaffold versions: Expo **54.0.37**, React Native **0.81.5**, React
-**19.1.0**, TypeScript **5.9.3**. React Navigation is installed; SQLite, Keychain
-and NetInfo remain planned dependencies. Use the ADR-017 choices and
-root dependency approval policy when adding them.
+From `mobile/`: `npm ci`, `npm run prebuild:android`, then `npm start`.
+Use the configured Microsoft JDK 17. Keychain, SQLite, NetInfo and the changed PDF
+adapter require a fresh native build; Expo Go is unsupported. `npm run android`
+builds/installs on a development device. Judging-device installation is human-only.
 
-SDK 54 was selected explicitly to reuse this Windows machine's existing
-Gradle 8.14.3 / JDK 17 setup. The wrapper has been verified offline with Microsoft
-JDK 17; a full APK build is still unverified. The competition does not mandate an Expo version.
-Changing SDK versions requires regenerating Android with
-`npx expo prebuild --clean --platform android --no-install`, followed by
-`node scripts/configure-android.mjs`. Ordinary development does not require
-repeating a clean prebuild.
+Start the backend using root Docker instructions. Login > Settings sets its address:
+- Emulator: `http://10.0.2.2:8080` (default).
+- Phone: `http://<laptop LAN IP>:8080` on the same network.
+- USB: `adb reverse tcp:8080 tcp:8080`, then `http://127.0.0.1:8080`.
 
-## Structure
+Use an account provisioned on that backend (competition accounts: root README).
+Empty server data produces empty screens, never synthetic fallback records.
 
-```text
-App.tsx                  entry re-export
-src/app/                 app root, preview state and mock-data adapter
-src/navigation/          typed role-aware navigation and Screen Studio
-src/features/
-  auth/ home/            login and role-aware home
-  fixtures/ matches/     fixtures, live score, timeline, pinned products
-  standings/ clubs/      league tables and club profiles
-  store/                 catalogue, cart, checkout, receipts
-  roster/ scoring/       manager and organizer actions
-  sync/ settings/        queue status and backend configuration
-src/components/          shared UI
-src/theme/               shared colors, spacing, typography
-src/hooks/ src/types/    shared hooks and types
-src/config/              public environment configuration
-src/services/
-  api/                   HTTP transport and error mapping
-  auth/                  future Keystore/Keychain token storage
-  storage/               future SQLite cache and migrations
-  sync/                  future persistent queue and conflict handling
-  realtime/              future live subscriptions
-assets/                  images and fonts
-scripts/                 Windows Android configuration and USB setup
-release/                 final app-release.apk delivery location
-```
+## Behavior
 
-Unimplemented service folders retain `.gitkeep` boundaries. Their presence does
-not implement the requirements. SQLite, secure storage and sync remain future work.
+Fixtures, standings, clubs/players, sport choices, products and orders come from
+the server. APP-03 supplies tenant-scoped discovery. Tokens live in Keychain;
+SQLite stores real cached reads, cart and API-17 outbox envelopes under a
+server/user/selected-tenant scope. Scoring/roster work persists before APP-40
+submission. Reconnection and a 30-second foreground interval retry pending work;
+Sync now shows individual outcomes. Checkout preserves its order ID across
+ambiguous failures. PDF receipts come from the server.
 
-## Explore the designs
+Account and Settings provide sign-out: token, cart and current account cache are
+cleared, with a choice to retain/discard pending work. Other accounts, tenants and
+servers cannot read/replay it. Light/dark/device themes use restrained accents.
+Unsupported P2 simulations are absent from navigation.
 
-Open the app, tap **Explore screen designs**, then **Settings → Screen Studio**.
-Fixtures is the starting tab for all five roles. Screen Studio switches role,
-content/loading/empty/error/success presentation, connectivity preview and
-supplied sync outcomes. It lists all 21 screens and gates management previews by
-role. Managers receive a Roster tab; Organizers receive Scoring; Admin management
-is reached through explicit resource context. Account is reachable from Settings
-and Club. Standings rows open team-filtered fixtures.
+## Checks and structure
 
-Data comes through `src/app/previewData.ts:getPreviewData` from the separately
-owned synthetic fixture module. Tenant identity uses its name/logo and a color
-marker; text retains contrast-safe app colors. The shared tokens and components
-are in `src/theme/tokens.ts` and `src/components/ui.tsx`.
+`npm run typecheck`; `npm test`; `npx expo export --platform android --max-workers 1 --output-dir dist-api-check`.
+Native acceptance: [desk check](../docs/MOBILE.md).
 
-Form entry, selectors, confirmations and the cart work locally. Sign-in, scoring,
-registration, checkout, product pinning, PDF actions and Sync explicitly report
-that they are not connected. Preview connectivity is manually selected; it is not
-device network detection. No credentials are sent or tokens stored. No orders,
-events or successful server mutations are fabricated. Cart, URL and preview
-choices reset on restart. Offline preview is not SQLite persistence or an outbox.
-
-Verification commands: `npm run typecheck`, `npm run test:screens` (12 checks),
-`npm run test:mock-data` (6 checks), and
-`npx expo export --platform android --output-dir .expo/ui-review-bundle --max-workers 2`.
-TypeScript, both test suites and the Android Hermes export passed on 2026-10-17.
-Native layout verification remains open: the existing API 37 emulator requires
-4 GB committed RAM and failed to start with approximately 2.3 GB available.
-The native offline Gradle build failed on uncached react-native-screens build
-dependencies; the online retry stalled fetching them and was stopped. No new APK
-was produced. 360×640 dp, landscape, large fonts, TalkBack, keyboard and System Back must still
-be checked in the running Android app. Source checks do not establish those results.
-
-## Windows commands
-
-Always run these from `C:/Users/dell/nascon-app-dev-muzu_cache/mobile`.
-Use `npx expo install <package>` for Expo/React Native dependencies and plugins.
-For an existing checkout with a lockfile, `npm ci` restores the pinned dependencies.
-Do not use plain `npm install` to add Expo packages.
-
-```powershell
-# Generate Android and apply local paths; repeat after regenerating native files.
-npm run prebuild:android
-
-# Verify the phone and forward Metro's USB port.
-npm run android:device
-
-# Build/install a debug app on the selected device and start Metro.
-npm run android
-
-# Start only Metro.
-npm start
-
-# Static check.
-npm run typecheck
-
-# After a failed build, stop existing Gradle daemons before retrying.
-npm run android:stop
-```
-
-`npm run android:configure` reapplies these exact values:
-
-```properties
-# android/local.properties
-sdk.dir=C:/Users/dell/AppData/Local/Android/Sdk
-# android/gradle.properties
-org.gradle.java.home=C:/Program Files/Microsoft/jdk-17.0.20.101-hotspot
-```
-
-Native folders are generated locally and ignored by Git. The tracked configuration
-script restores machine-specific settings after prebuild. No global Java or SDK
-settings are modified. If multiple devices are connected, use
-`npm run android:device -- -Serial YOUR_DEVICE_ID`.
-
-The configuration script also sets `networkTimeout=120000` in
-`android/gradle/wrapper/gradle-wrapper.properties` to allow slower Gradle downloads.
-If Metro uses port 8082 because 8081 is occupied, use
-`npm run android:device -- -Port 8082` and
-`npx expo run:android --device --port 8082`.
-
-These native setup paths are specific to the current Windows machine. A new
-checkout on another machine must adapt them; this is not a verified portable
-Android build workflow yet.
-
-Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to your backend
-teammate's LAN address on port **8080**. Restart Metro after changing it. The
-default `10.0.2.2` is for an Android emulator. If the backend runs on this Windows
-machine, `adb reverse tcp:8080 tcp:8080` also permits `http://localhost:8080` over
-USB. Metro forwarding on 8081 does not forward the backend.
-
-## Later implementation
-
-Initial screen data is available in
-[`tests/fixtures/mockData.ts`](tests/fixtures/mockData.ts). See
-[`MOCK-DATA.md`](MOCK-DATA.md) for imports, the 21-screen mapping, UI states and
-prototype-only contract gaps. Run `npm run test:mock-data` for fixture checks.
-The screen preview consumes this data through the read-only adapter above.
-
-Follow specification sections 8.2-8.6 for screens and judging, section 5.14 for
-offline queue contracts, and NFR-4/NFR-5 for persistence and secure token storage.
-Use the actual backend contract; the root repo's generic port-3000 examples are
-starter documentation. The public API URL is build configuration, not secret
-storage. Never put tokens or `DAY1_SALT` in an Expo public environment variable.
-
-`EXPO_PUBLIC_API_URL` supplies the startup default. The in-app server address
-control is a validated, in-memory design preview; runtime transport and durable
-server settings required by MOB-01/MOB-10 remain to be implemented.
-Use `/api/v1` contracts from REQUIREMENTS section 8.2 and parse errors as
-`{error:{code,message,details:{}}}`; validation fields are in `details.fields`.
-
-The required final artifact is `release/app-release.apk` (Android 10/API 29 or
-newer). This scaffold includes no APK and makes no claim of offline functionality.
-This path is explicitly unignored so a later APK can be committed. Release signing
-and APK generation remain separate delivery steps.
-
-Scaffold template: [Expo create-expo-app documentation](https://docs.expo.dev/more/create-expo/).
+`src/app/AppContext.tsx` owns lifecycle; `services/api` owns transport/models/commands;
+`services/auth/session.ts` wraps Keychain; `services/storage/storage.ts` wraps SQLite;
+`types/models.ts` defines display models. No runtime dependencies were added.

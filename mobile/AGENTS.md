@@ -9,8 +9,7 @@ root Git repository. Never create a nested `.git` directory here.
 The root `App.tsx` re-exports `src/app/App.tsx`. Feature folders reserve screen
 and domain responsibilities, while services reserve HTTP, secure authentication
 storage, SQLite persistence, realtime, and offline synchronization boundaries.
-Feature directories contain the 21 UI preview screens. Infrastructure remains
-unimplemented except plain-language error mapping. Shared
+Feature directories contain production API screens. HTTP, Keychain sessions, SQLite cache/outbox and connectivity are implemented. Shared
 components, navigation, hooks, types, and theme each have separate source folders.
 
 Read `SCREEN-PLAN.md` before screen work. Keep feature screens in
@@ -24,7 +23,7 @@ matrix; coordinate backend code changes with its owner.
 Run all Expo commands from this directory. Add Expo packages and plugins with
 `npx expo install <package>` so versions follow the installed SDK. Restore a
 locked checkout with `npm ci`. Use `npm run typecheck` for the strict TypeScript
-check; no mobile test runner is configured yet.
+check; use `npm test` for service and navigation tests.
 
 The root dependency policy still applies: install only approved libraries from
 ADR-017, and record exact installed versions. Expo installation does not waive

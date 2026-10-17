@@ -2,15 +2,15 @@
 import { Platform, TextStyle } from 'react-native';
 
 export const darkColors = {
-  background: '#11150F', surface: '#1C2118', raised: '#262D21', olive: '#202918',
-  divider: '#3B4533', outline: '#74806A', text: '#F3F5EE', secondary: '#BBC4AF',
-  muted: '#A0AC94', accent: '#C5F545', onAccent: '#18200B',
+  background: '#151816', surface: '#202421', raised: '#2B302C', olive: '#303A2C',
+  divider: '#3C443E', outline: '#7C887F', text: '#F1F3EF', secondary: '#C1C9C1',
+  muted: '#ABB6AC', accent: '#B9D98C', onAccent: '#18200B',
   success: '#A8DAB5', successBg: '#1D3022', warning: '#E7C874', warningBg: '#352F1F',
   error: '#FFB4AB', errorBg: '#38221F', info: '#B7D5F2', infoBg: '#20303E',
 } as const;
 type Palette = { [K in keyof typeof darkColors]: string };
 export const lightColors: Palette = {
-  background:'#F4F6EF',surface:'#FFFFFF',raised:'#E5EADB',olive:'#E6EECF',
+  background:'#F4F5F2',surface:'#FFFFFF',raised:'#E9EDE6',olive:'#E3ECD8',
   divider:'#CAD3C0',outline:'#68785B',text:'#1B2117',secondary:'#45523C',muted:'#54614B',
   accent:'#405B16',onAccent:'#FFFFFF',success:'#235532',successBg:'#DBEEDF',
   warning:'#654C0B',warningBg:'#FFF0CA',error:'#922B22',errorBg:'#FCE2DD',info:'#225172',infoBg:'#E0EDF8',

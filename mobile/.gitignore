@@ -44,3 +44,6 @@ yarn-error.*
 # Keep the required release delivery path available to Git.
 !release/
 !release/app-release.apk
+
+# Local API bundle verification output
+/dist-api-check/

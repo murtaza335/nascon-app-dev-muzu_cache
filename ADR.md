@@ -177,8 +177,16 @@ requirement IDs from [`REQUIREMENTS.md`](REQUIREMENTS.md). The structural summar
 
 
 ## ADR-021: Persistent interactive mock application
-- **Status:** Accepted for mock mode · **Date:** 2026-10-17
+- **Status:** Superseded by ADR-022; previously accepted for mock mode · **Date:** 2026-10-17
 - **Context:** User expanded the UI-only slice to all end-to-end mock journeys, sessions, states, reloads and management screens.
 - **Decision:** Put deterministic, testable local mutations behind a pure mock service. Persist scoped world/queue/cart state in approved op-sqlite, mock session metadata in approved Keychain, and observe device connectivity with approved NetInfo plus an explicit offline simulation. Preserve API and P2 contract gaps; mock management is a local prototype. Extend the approved theme with a contrast-safe light option and system preference.
 - **Consequences:** Usable offline demo flows without backend configuration. This does not establish real API, cryptographic signature, secure server authentication or audited domain compliance. A fresh native build is required. Local receipts use an existing Expo filesystem module and generated PDF bytes.
 - **Requirements:** MOB-01…12, NFR-4/5, NFR-ACC-01, FR-1.2/1.3/2.2/2.3 (mock demonstrations).
+
+## ADR-022: Real API mobile runtime and restrained production UI
+- **Status:** Implemented; native acceptance pending (2026-10-17).
+- **Context:** User requested real APIs, deletion of mock data, proper sign-out and calmer UI.
+- **Decision:** Authenticated fetch, Keychain sessions and scoped SQLite workspaces replace the mock engine. APP-03 discovery reuses P6 authorization. Score/roster envelopes persist before APP-40 submission. Checkout IDs survive retries; PDF bytes come from server. Unsupported simulations are removed; mandated server mock gateway remains.
+- **UI:** Neutral surfaces, muted olive selection, restrained lime primary actions, runtime semantic colors and sign-out from Account/Settings.
+- **Consequences:** No dependency/infrastructure changes. Fresh Android build required. ADR-020/021 are historical; native acceptance remains pending.
+- **Requirements:** MOB-01-12, APP-03 and existing APP contracts, NFR-4/5/ACC-01, RT-01.

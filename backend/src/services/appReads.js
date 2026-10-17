@@ -154,3 +154,14 @@ async function getProduct(principal, productId) {
 }
 
 module.exports = { listLeagues, leagueFixtures, leagueStandings, matchDetail, clubProfile, listProducts, getProduct, requireLeague, requireMatch, effectiveStatus };
+
+async function context(principal, requestedTenant) {
+  const scope = requestedTenant === undefined ? tenantScope(principal) : requestedTenant;
+  must(principal, 'club.read', { tenant_id: scope });
+  if (scope !== null && (typeof scope !== 'string' || !require('../lib/validate').ID_RE.test(scope))) {
+    throw require('../errors').validationError(['tenant_id']);
+  }
+  if (scope !== null && !(await appRepo.getTenant(scope))) throw new AppError(E.TENANT_NOT_FOUND);
+  return appRepo.context(scope);
+}
+module.exports.context = context;
