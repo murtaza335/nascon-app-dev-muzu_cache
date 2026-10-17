@@ -40,13 +40,23 @@ function useAppValue() {
   async function expire(s = auth.current) { if (!s || !isCurrent(s)) return; publishSession(null); await sessionStorage.clear(); publish(emptyWorkspace()); setCartUndo(null); setResourceError(''); notify('Your session expired, please sign in again. Pending work is retained.'); }
   const clientFor = (s: Session) => createClient(s.serverUrl, s.token, () => expire(s));
   const showError = (error: unknown) => error instanceof Error ? error.message : 'Something went wrong. Please try again.';
+  // Stale server URLs from previous builds (emulator loopback, old defaults) are replaced
+  // with the current default on boot so users connect to the live server without visiting Settings.
+  const LEGACY_URLS = ['http://10.0.2.2:8080', 'http://localhost:8080', 'http://127.0.0.1:8080'];
   async function load() {
     setReady(false); setBootError('');
     try {
-      const next = await storage.readPreferences() || defaults; prefs.current = next; setPreferences(next);
+      let next = await storage.readPreferences() || defaults;
+      // Auto-migrate old emulator/localhost defaults to the current live server.
+      if (LEGACY_URLS.includes(next.serverUrl.replace(/\/+$/, '')) && API_BASE_URL !== next.serverUrl) {
+        next = { ...next, serverUrl: API_BASE_URL };
+        await storage.savePreferences(next);
+        await sessionStorage.clear(); // force re-login against the new server
+      }
+      prefs.current = next; setPreferences(next);
       const restored = await sessionStorage.read();
       if (validSession(restored, next.serverUrl)) { publishSession(restored); publish(await storage.readWorkspace(sessionScope(restored!)) || emptyWorkspace()); }
-      else { await sessionStorage.clear(); publishSession(null); if (restored) notify('Your session expired, please sign in again. Pending work is retained.'); }
+      else { await sessionStorage.clear(); publishSession(null); if (restored) notify('Server address updated. Please sign in to continue.'); }
       setReady(true);
     } catch { setBootError('Could not open secure local storage. Retry, or rebuild the Android app with its native modules.'); }
   }
