@@ -71,7 +71,7 @@ BAD = [
     ("fixtures", None, ["fixtures"]), ("fixtures", [{"match_id": "m", "home": "t1", "away": "t1"}], ["fixtures[0].away"]),
     ("fixtures", [{"match_id": "m", "home": "t1", "away": "zz"}], ["fixtures[0].away"]),
     ("fixtures", [{"home": "t1", "away": "t2"}], ["fixtures[0].match_id"]),
-    ("qualification", None, ["qualification"]), ("qualification", {"spots": 0}, ["qualification.spots"]),
+    ("qualification", {"spots": 0}, ["qualification.spots"]),
     ("qualification", {"spots": 5}, ["qualification.spots"]), ("qualification", {"spots": 1.5}, ["qualification.spots"]),
     ("points", {"win": "3"}, ["points.win"]), ("lots_seed", "42", ["lots_seed"]),
     ("tie_break_order", ["scored", "scored"], ["tie_break_order"]), ("tie_break_order", ["nope"], ["tie_break_order"]),
@@ -97,3 +97,12 @@ def test_fr_1_2_02_more_than_40_teams_400(api):
     teams = [f"t{i}" for i in range(41)]
     err = assert_error(api.post("/audit/v1/leagues", json=body(teams=teams, fixtures=[])), 400, "VALIDATION_ERROR")
     assert "teams" in err["details"]["fields"]
+
+
+@pytest.mark.api
+@pytest.mark.req("FR-1.2-02")
+def test_fr_1_2_02_qualification_is_optional_default_one_spot(api):
+    b = body()
+    del b["qualification"]
+    assert api.post("/audit/v1/leagues", json=b).status_code == 201
+    assert api.get(f"/audit/v1/standings/{b['league_id']}").json()["qualification_spots"] == 1

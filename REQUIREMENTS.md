@@ -514,7 +514,7 @@ Request `{format, teams, params}`. `format` ∈ `round_robin`, `swiss`, `single_
  "tie_break_order":["h2h_points","h2h_diff","overall_diff","scored","fair_play","draw_lots"],
  "qualification":{"spots":2},"lots_seed":42}
 ```
-Req: `league_id`, `sport_id`, `teams` (unique, 2–40), `fixtures` (array; teams must be in `teams`, home ≠ away), `qualification.spots` (int 1..team count). Optional: `points` (ints, default 3/1/0; each of win/draw/loss individually optional, OQ-21), `tie_break_order` (same tokens as API-03, default the sport's), `lots_seed` (int, default the last reset seed). 201 `{"league_id":"lg-1","status":"created","team_count":4,"fixture_count":2}`. 404 `SPORT_NOT_FOUND`; 409 `LEAGUE_EXISTS`; 409 `MATCH_EXISTS` (also for a match_id duplicated inside the request).
+Req (spec §5.8): `league_id`, `sport_id`, `teams` (unique, 2–40), `fixtures` (array; teams must be in `teams`, home ≠ away). Optional: `qualification.spots` (int 1..team count; default 1), `points` (ints, default 3/1/0; each of win/draw/loss individually optional, OQ-21), `tie_break_order` (same tokens as API-03, default the sport's), `lots_seed` (int, default the last reset seed). 201 `{"league_id":"lg-1","status":"created","team_count":4,"fixture_count":2}`. 404 `SPORT_NOT_FOUND`; 409 `LEAGUE_EXISTS`; 409 `MATCH_EXISTS` (also for a match_id duplicated inside the request).
 
 #### API-06 `POST /audit/v1/events`: FR-1.1-04
 Request `{"event_id":"evt-0003","match_id":"m1","type":"score","payload":{"team_id":"t1","event_type":"goal"}}`. Types and payloads:
