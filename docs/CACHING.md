@@ -1,3 +1,5 @@
+> **Superseded where conflicting (2026-10-17).** This starter guide predates the NaSCon '26 Part I spec. The canonical sources are [`REQUIREMENTS.md`](../REQUIREMENTS.md), [`ARCHITECTURE.md`](../ARCHITECTURE.md), [`ADR.md`](../ADR.md) and [`AGENTS.md`](../AGENTS.md). Key overrides: API port **8080** (not 3000); error body `{"error":{"code","message","details":{}}}`; mobile storage is SQLite + Keystore (not AsyncStorage). See `docs/CHANGELOG.md`.
+
 # Caching (Redis cache-aside)
 
 Implementation: `backend/src/cache.js`. Decision record: ADR-003. Tests: `tests/api/test_cache_api.py` (REQ-INF-03).
