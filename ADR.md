@@ -149,7 +149,7 @@ requirement IDs from [`REQUIREMENTS.md`](REQUIREMENTS.md). The structural summar
 - **Decision:** Keep the existing Expo-prebuild React Native Android scaffold in `mobile/` (no nested git). Current lockfile versions: Expo 54.0.37, expo-status-bar 3.0.9, React Native 0.81.5, React 19.1.0, TypeScript 5.9.3 and @types/react 19.1.17. SDK 54 was explicitly selected by the user to reuse the existing Gradle 8.14.3 / Microsoft JDK 17 setup; it is not a competition version constraint. A full APK build still requires verification. Generated native directories are ignored; tracked Expo configuration/scripts must reproduce native changes. Feature screens live under `src/features/<feature>/`, infrastructure under `src/services/{api,auth,storage,sync,realtime}/` (ARCHITECTURE §11). Persistence: SQLite (`@op-engineering/op-sqlite`, fallback `react-native-sqlite-storage`) with tables `kv`, `cache_entries`, `outbox`, `sync_results`. Token: `react-native-keychain`. Connectivity: `@react-native-community/netinfo`. Navigation: React Navigation. One API client with a configurable base URL (Settings; default `http://10.0.2.2:8080`). Release APK signed with the debug keystore → `mobile/release/app-release.apk`; `usesCleartextTraffic=true`.
 - **Alternatives:** AsyncStorage (not SQLite, so it fails the §8.4 wording); Flutter/Hive (no warmed cache); Kotlin/Room (slower UI iteration for this team).
 - **Consequences:** (+) meets §8 exactly; offline-first by construction. (−) Native modules must build offline; validate the APK build by 13:30 PKT.
-- **Implementation status (2026-10-17):** Scaffold only. This ADR remains Proposed for navigation, persistence, secure session, connectivity, sync and release delivery; those libraries are not installed. Expo is an existing dependency, with no dependency additions in this review. See `mobile/SCREEN-PLAN.md` for screen boundaries and integration gaps.
+- **Implementation status (2026-10-17):** The 21-screen UI preview and React Navigation are implemented. Installed navigation versions: native 7.5.1, native-stack 7.21.0, bottom-tabs 7.21.0, react-native-screens 4.16.0, safe-area-context 5.6.2. Persistence, secure session, connectivity detection, sync and release delivery remain Proposed/unimplemented. TypeScript and Hermes export pass; native build/layout verification remains open. See `mobile/SCREEN-PLAN.md` and ADR-020.
 - **Requirements:** MOB-01…12, NFR-4, NFR-5, DEL-06.
 
 ## ADR-018: Compose topology: api, worker, postgres, redis, minio; API on host port 8080
@@ -166,3 +166,19 @@ requirement IDs from [`REQUIREMENTS.md`](REQUIREMENTS.md). The structural summar
 - **Decision:** (1) `node:test` unit tests for every domain rule, the spec examples and App. A vectors (they drive coverage). (2) pytest API vectors for every endpoint example, every Appendix B code, the 65-cell RBAC matrix, security probes, rate limit, 413, idempotency and edge cases 1–6 of §6, tagged `@pytest.mark.req("<ID>")`. (3) Concurrency tests (20-thread barrier, repeated). (4) CI mirrors the grader cold start on port 8080. (5) A manual desk-check script for mobile.
 - **Consequences:** (+) every requirement is traceable to a test; (−) our vectors are only our reading of the spec, so any open question (REQUIREMENTS §12.2) remains a risk.
 - **Requirements:** all; DEL-04, DEL-05.
+
+
+## ADR-020: Separate UI preview from future service integration
+- **Status:** Accepted for the authorized screen-design slice · **Date:** 2026-10-17
+- **Context:** User requested all screen designs now, with backend configuration later and synthetic data authored in a separate session.
+- **Decision:** Retain feature/service directories. Share theme tokens, accessible native primitives and typed navigation; isolate data adaptation in `src/app/previewData.ts` and memory-only design state in `PreviewContext.tsx`. Consume synthetic test fixtures without changing their contract/prototype distinction. Role/tenant selectors belong to Screen Studio; product buttons never simulate accepted server writes.
+- **Consequences:** (+) All 21 screen designs can be explored and extended consistently. (−) Authentication, SQLite/outbox, network status, realtime, receipt PDFs and actual backend behavior still require separate implementation; source-level accessibility choices need device verification. No requirements/defaults change.
+- **Requirements:** MOB-01…12, NFR-ACC-01 (UI coverage only); NFR-4/5, RT-01 and DEL-06 remain integration/delivery work.
+
+
+## ADR-021: Persistent interactive mock application
+- **Status:** Accepted for mock mode · **Date:** 2026-10-17
+- **Context:** User expanded the UI-only slice to all end-to-end mock journeys, sessions, states, reloads and management screens.
+- **Decision:** Put deterministic, testable local mutations behind a pure mock service. Persist scoped world/queue/cart state in approved op-sqlite, mock session metadata in approved Keychain, and observe device connectivity with approved NetInfo plus an explicit offline simulation. Preserve API and P2 contract gaps; mock management is a local prototype. Extend the approved theme with a contrast-safe light option and system preference.
+- **Consequences:** Usable offline demo flows without backend configuration. This does not establish real API, cryptographic signature, secure server authentication or audited domain compliance. A fresh native build is required. Local receipts use an existing Expo filesystem module and generated PDF bytes.
+- **Requirements:** MOB-01…12, NFR-4/5, NFR-ACC-01, FR-1.2/1.3/2.2/2.3 (mock demonstrations).

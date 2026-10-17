@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Campus Commons — concept study</title>
+<style>
+:root{--primary:#553351;--ground:#F6EFF5;--accent:#C36D4D;--ink:#17212b;--muted:#52616b}
+*{box-sizing:border-box}body{margin:0;width:360px;height:640px;overflow:hidden;background:var(--ground);font:16px/1.4 Arial,sans-serif;color:var(--ink)}
+.system{height:24px;padding:3px 16px;background:var(--primary);color:white;font-size:12px}header{background:var(--primary);color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}header strong{font-size:20px}header span{font-size:14px}
+.status{padding:9px 16px;background:#fff0d1;color:#62430a;font-size:14px}main{padding:16px}h1{font-size:28px;line-height:1.2;margin:0 0 12px}.picker{min-height:48px;background:white;border:1px solid #77838d;border-radius:12px;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+.route{margin:12px 0;padding-bottom:8px;border-bottom:3px solid var(--primary);color:var(--primary);font-size:14px;font-weight:bold;}
+.filters{display:flex;gap:8px;margin:12px 0}.filter{border:1px solid #73818b;border-radius:20px;padding:6px 12px;background:white;font-size:14px}.selected{background:var(--primary);color:white;border-color:var(--primary)}
+.day{font-size:14px;margin:16px 0 8px;color:var(--muted)}.fixture{padding:16px;border-radius:12px;background:white;margin-bottom:10px;border-left:5px solid var(--accent);}.meta{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);margin-bottom:8px}.live{color:#246347;font-weight:bold}.teams{display:grid;grid-template-columns:1fr auto;gap:5px 12px;font-size:16px}.score{font-size:24px;font-weight:bold;line-height:1.2;font-variant-numeric:tabular-nums}.venue{font-size:14px;color:var(--muted);margin-top:8px}
+.demo{margin-top:10px;font-size:12px;color:#5a6670}nav{position:absolute;top:560px;height:64px;width:360px;padding:8px 4px;display:flex;justify-content:space-around;background:#e5eaf0;border-top:1px solid #c1cad3;font-size:12px}nav div{text-align:center;min-width:76px}nav b{display:block;margin:auto;padding:3px 15px;border-radius:16px;font-size:18px}nav .active b{background:var(--primary);color:white}.gesture{position:absolute;top:624px;height:16px;width:360px;background:#e5eaf0}.gesture:after{content:'';display:block;margin:6px auto;width:90px;height:3px;background:#25313b;border-radius:5px}
+</style></head><body>
+<div class="system">12:05 <span style="float:right">Android concept</span></div>
+<header><strong>NaSCon Sports</strong><span>Settings</span></header>
+<div class="status">Offline · Saved 11:58 · View sync</div>
+<main><h1>Fixtures</h1><div class="picker"><span>League Alpha 1</span><span>⌄</span></div>
+<div class="route">League Alpha 1 / Matchday</div><div class="filters"><span class="filter selected">All</span><span class="filter">In progress</span><span class="filter">Upcoming</span></div>
+<div class="day">17 October · Demo fixtures</div>
+<div class="fixture"><div class="meta"><span class="live">In progress · saved</span><span>14:00</span></div><div class="teams"><span>Club Alpha 1</span><span class="score">2</span><span>Club Alpha 2</span><span class="score">1</span></div><div class="venue">Venue not provided</div></div>
+<div class="fixture"><div class="meta"><span>Upcoming</span><span>Time TBC</span></div><div class="teams"><span>Club Alpha 2</span><span>—</span><span>Club Alpha 1</span><span>—</span></div></div>
+<p class="demo">Synthetic data for layout comparison only.</p></main>
+<nav aria-label="App destinations"><div class="active"><b>▤</b>Fixtures</div><div><b>≡</b>Standings</div><div><b>▢</b>Store</div><div><b>○</b>Club/Profile</div></nav><div class="gesture"></div>
+</body></html>

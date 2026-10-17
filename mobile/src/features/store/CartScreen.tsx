@@ -1,0 +1,10 @@
+import { useNavigation } from '@react-navigation/native';
+import { View } from 'react-native';
+import { usePreview } from '../../app/PreviewContext';
+import { Button, Card, Empty, IconButton, money, Row, Screen, T, ui } from '../../components/ui';
+import type { AppNavigation } from '../../navigation/routes';
+import { colors as c } from '../../theme/tokens';
+export function CartScreen() {
+  const p=usePreview();const n=useNavigation<AppNavigation>();const subtotal=p.cart.reduce((a,x)=>a+x.variant.price_minor*x.quantity,0);
+  return <Screen title="Your cart" subtitle="A little more team spirit" back stateful>{p.cart.length?<><View style={{gap:16}}>{p.cart.map(line=><Card key={line.variant.variant_id}><View style={ui.between}><View style={ui.grow}><T variant="strong">{line.name}</T><T variant="caption" color={c.secondary}>{[line.variant.size,line.variant.color].filter(Boolean).join(' · ')||'Selected variant'}</T></View><T variant="strong">{money(line.variant.price_minor*line.quantity)}</T></View><View style={ui.between}><View style={ui.row}><IconButton name="minus" label={`Decrease ${line.name} quantity`} onPress={()=>p.setCart(old=>old.map(x=>x===line?{...x,quantity:Math.max(1,x.quantity-1)}:x))}/><T>{line.quantity}</T><IconButton name="plus" label={`Increase ${line.name} quantity`} onPress={()=>p.setCart(old=>old.map(x=>x===line?{...x,quantity:Math.min(10,x.quantity+1)}:x))}/></View><Button label="Remove" kind="quiet" onPress={()=>p.setCart(old=>old.filter(x=>x!==line))}/></View></Card>)}</View><View style={ui.divider}/><Row title="Estimated subtotal" trailing={<T variant="title">{money(subtotal)}</T>}/><T color={c.secondary}>Discounts, pricing and availability are confirmed when you place your order.</T><Button label="Continue to checkout" onPress={()=>n.navigate('Checkout')}/><Button label="Keep browsing" kind="quiet" onPress={()=>n.navigate('Main',{screen:'Store'})}/></>:<Empty title="Your cart has room for more" body="Find something from your club’s collection and make it yours." icon="store" action="Explore the store" onAction={()=>n.navigate('Main',{screen:'Store'})}/>}</Screen>;
+}

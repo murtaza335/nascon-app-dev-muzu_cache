@@ -1,7 +1,8 @@
 # Mobile readiness review and screen plan
 
-Reviewed 2026-10-17, before screen design. This is an implementation plan, not a
-claim that the screens, navigation, persistence or integrations exist.
+Reviewed 2026-10-17. All S01–S21 screen components and typed role-aware navigation
+now exist as a UI-only preview. The behavior below remains the integration target;
+screen presence does not establish persistence, authentication or API acceptance.
 Behavior remains owned by [REQUIREMENTS](../REQUIREMENTS.md) sections 8–10.
 
 ## Documentation review
@@ -34,8 +35,8 @@ not establish that the backend satisfies APP contracts or that any API is runnin
 
 Keep the existing directory structure. It already separates features from shared
 infrastructure; moving empty folders into a flat `screens/` tree would add churn.
-Only `src/app/App.tsx` and `src/config/env.ts` currently contain source under `src`.
-The remaining folders have `.gitkeep` placeholders. The root `App.tsx` and
+The theme, components, navigation, preview adapter and all feature screen files
+now contain source. Unimplemented services retain placeholders. The root `App.tsx` and
 `index.ts` already delegate to the app root correctly.
 
 | Existing location | Responsibility when implemented |
@@ -76,6 +77,15 @@ makes previously implicit flows explicit. All entries are planned, not built.
 | P2 management features had no UI inventory | Added a separate extension backlog; existing priorities and delivery order are unchanged. |
 
 ## Primary screen inventory
+
+Implementation status: every file listed below exists under `src/features/`.
+`src/navigation/screenRegistry.ts` provides the 21-entry preview inventory.
+`npm run test:screens` checks inventory, role visibility, tenant isolation and
+adapter behavior. `Settings → Screen Studio` exposes all presentation states and
+role-specific routes. Product actions remain disconnected; success/offline states
+are explicitly labeled previews. Backend integration and native visual/accessibility
+checks remain open. Admin roster management uses a stack route with club context;
+manager/organizer action tabs retain their documented role scope.
 
 Plan **21 primary screens** in existing feature folders, plus the shared sheets
 and states below. The count is a design inventory, not a new requirement that all
@@ -205,6 +215,15 @@ backend capabilities (FR-5.1, FR-1.1), but separate mobile admin screens are not
 explicitly required by MOB-01-12. If a mobile admin workspace is requested, plan
 its tenant/sport/config forms after authenticated production contracts are agreed;
 do not expose grader `/reset`, `/roster/setup` or `/rbac-matrix` in the app.
+
+## Reference-led design brief
+
+[DESIGN-BRIEF.md](DESIGN-BRIEF.md) records the approved shared system and shell/Login/
+Fixtures/Match Detail layouts. The user selected a charcoal/olive/lime reference,
+Fixtures as the landing tab for every role, and one Match Detail scroll ordered
+score, timeline, then pinned product. All 21 screen designs are now implemented
+as UI-only previews; the MOB traceability row is In progress. Backend, durable
+offline behavior and native acceptance remain pending.
 
 ## Design sequence and completion gate
 

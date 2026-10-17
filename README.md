@@ -1,15 +1,25 @@
 # NaSCon '26 Part I: Multi-Sport League & Club Operations Platform
 
-> Mobile app: `mobile/` holds the Expo/React Native app. Setup is in [mobile/README.md](mobile/README.md), the desk-check
-> script in [docs/MOBILE.md](docs/MOBILE.md). Product behavior is owned by [REQUIREMENTS.md](REQUIREMENTS.md), structure by
-> [ARCHITECTURE.md](ARCHITECTURE.md), decisions by [ADR.md](ADR.md), working rules by [AGENTS.md](AGENTS.md).
+> Mobile handoff (2026-10-17): `mobile/` now contains an Expo/React Native
+> UI preview with all 21 screen designs. Use [mobile/README.md](mobile/README.md)
+> for setup/exploration and [mobile/SCREEN-PLAN.md](mobile/SCREEN-PLAN.md) for scope.
+> The backend starter examples below describe legacy behavior, not the target
+> contracts. [REQUIREMENTS.md](REQUIREMENTS.md) and
+> [ARCHITECTURE.md](ARCHITECTURE.md) govern port 8080, the error envelope and
+> the planned stack. Backend readiness has not been verified by the mobile review.
 
-A multi-tenant sports league and club operations backend (Node 22 / Express 5, PostgreSQL 16, Redis 7, MinIO) with an
-event-sourced scoring engine, fixture generators, standings, club rosters, a concurrency-safe merchandise store, five-tier
-RBAC, offline-sync replay and a realtime WebSocket layer. It is graded through `/audit/v1/*` on `http://localhost:8080`; the
-mobile app uses `/api/v1/*` on the same server.
+## What this is
 
-## Run it (one command)
+A generic, domain-free starter for the 8-hour NaSCon '26 app-dev competition:
+
+- **Backend:** Node 20 + Express 5, PostgreSQL 16, Redis 7 (cache-aside), all in one root `docker-compose.yml` that the autograder runs as-is.
+- **Conventions baked in:** one consistent error body, strict input validation, malformed id is 400 and missing id is 404, conflicts are 409, ISO-8601 UTC timestamps, `snake_case` JSON.
+- **Test harness:** `node:test` unit tests, pytest API test vectors tagged with requirement IDs, an optional Selenium smoke test, a k6 smoke test and a CI workflow that mirrors the grader.
+- **Mobile:** All 21 React Native Android screen designs and role-aware navigation exist as a UI-only mock-data preview; backend, persistence and native acceptance remain pending ([mobile setup](mobile/README.md), [desk-check checklist](docs/MOBILE.md)).
+
+The only domain code is `backend/src/routes/example.js` (an `items` CRUD), which shows every convention. **Replace it on the day.**
+
+## Quick start
 
 ```bash
 export DAY1_SALT=<the salt you were given>      # required; never written to a file we commit
