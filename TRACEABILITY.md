@@ -29,24 +29,24 @@ behavior and tests exist. This review does not mark MOB/NFR requirements complet
 | FR-1.3-05 | Rescheduling conflicts (P2) | `domain/fixtures/conflicts.js` | `unit/fixtures/conflicts.test.js` | Todo |
 | FR-1.3-06 | Match status machine + broadcast | `domain/scoring/eventRules.js`, `services/matches.js`, `realtime/ws.js` | `tests/api/test_events_api.py`, `tests/api/test_realtime.py` | Todo |
 | FR-1.4-01 | Standings (API-08) | `domain/standings/{table,tiebreak,qualification,nrr,index}.js`, `lib/pyround.js`, `services/standings.js:getStandings` | `unit/standings/*.test.js`, `tests/api/test_standings_api.py` | Tested |
-| FR-2.1-01 | Club profile | `services/clubs.js`, `routes/api/clubs.js` | `tests/api/test_app_clubs.py` | Todo |
+| FR-2.1-01 | Club profile | `services/appReads.js:clubProfile`, `routes/api/clubs.js` | `tests/api/test_app_api.py::test_app_30_club_profile_and_isolation` | Tested |
 | FR-2.1-02 | Tenant branding + isolation | `seed/baseline.js`, `domain/rbac/policy.js` | `tests/api/test_rbac_api.py` | Todo |
 | FR-2.2-01 | Roster setup (API-09) | `domain/roster/setupSchema.js`, `services/roster.js:setup`, `routes/audit/roster.js` | `tests/api/test_roster_api.py::test_fr_2_2_01_*` | Tested |
 | FR-2.2-02 | Transfer/loan/release checks (API-10) | `domain/roster/transferRules.js:decide`, `services/roster.js:transfer` | `unit/roster/roster.test.js`, `tests/api/test_roster_api.py::test_fr_2_2_02_*` | Tested |
 | FR-2.2-03 | Loan auto-return | `domain/roster/loanReturn.js:dueReturns`, `services/roster.js:materializeReturns` | `unit/roster/roster.test.js`, `tests/api/test_roster_api.py::test_fr_2_2_03_*` | Tested |
 | FR-2.2-04 | Audit trail + history (API-11) | `repos/roster.js`, `services/roster.js:history`, `domain/roster/registrationState.js:squadAsOf` | `tests/api/test_roster_api.py::test_fr_2_2_04_*` | Tested |
-| FR-2.2-05 | Add player, roles | `routes/api/roster.js` | `tests/api/test_app_roster.py` | Todo |
-| FR-2.3-01 | Catalogue, variants, price schedules, discounts | `domain/store/pricing.js:effectivePrice`, `repos/store.js` (catalogue routes APP-50 pending) | `unit/store/store.test.js` | Done (code); APP-50/51 pending |
+| FR-2.2-05 | Add player, roles | `services/appWrites.js:addPlayer`, `routes/api/clubs.js` | `tests/api/test_app_api.py::test_app_31_add_player_and_profile_refresh` | Tested |
+| FR-2.3-01 | Catalogue, variants, price schedules, discounts | `domain/store/pricing.js:effectivePrice`, `services/appReads.js:listProducts/getProduct`, `routes/api/store.js` | `unit/store/store.test.js`, `tests/api/test_app_api.py::test_app_50_51_catalogue` | Tested |
 | FR-2.3-02 | Checkout + receipt + PDF (API-12) | `services/store.js:checkout`, `domain/store/*.js`, `pdf/receiptPdf.js:renderReceipt` | `unit/store/store.test.js`, `tests/api/test_checkout_api.py` | Tested |
 | FR-2.3-03 | Inventory (API-13) | `routes/audit/store.js:GET /inventory/:variant_id`, `services/store.js:getInventory` | `tests/api/test_checkout_api.py::test_fr_2_3_03_inventory` | Tested |
-| FR-2.3-04 | Order states + domain events | `domain/store/orderStateMachine.js`, `queue/outbox.js`, `worker.js` | `unit/store/orderStateMachine.test.js`, `tests/api/test_queue.py` | Todo |
-| FR-2.3-05 | Pinned product showcase | `routes/api/matches.js`, `realtime/ws.js` | `tests/api/test_app_matches.py` | Todo |
-| FR-5.1-01 | 5-tier RBAC policy-as-code | `domain/rbac/matrix.js`, `domain/rbac/policy.js:authorize`, `http/middleware/authenticate.js`, `routes/audit/rbac.js` | `unit/rbac/policy.test.js`, `tests/api/test_rbac_api.py::test_fr_5_1_01_probe_matrix` (85 cases) | Tested |
-| FR-5.1-02 | Tokens + login (API-14, APP-01) | `lib/jwt.js`, `services/auth.js:rbacMatrix` | `unit/rbac/jwt.test.js`, `tests/api/test_rbac_api.py::test_fr_5_1_02_*` | Tested (login APP-01 pending) |
+| FR-2.3-04 | Order states + domain events | `domain/store/orderStateMachine.js`, `services/orders.js:transition`, `repos/outbox.js` (relay/worker pending, T9) | `unit/store/store.test.js`, `tests/api/test_app_api.py::test_app_55_order_transitions_and_restock` | Done (transitions + outbox rows); relay pending |
+| FR-2.3-05 | Pinned product showcase | `services/appWrites.js:pinProduct`, `routes/api/matches.js` (realtime broadcast pending, T9) | `tests/api/test_app_api.py::test_app_14_pin_and_unpin` | Done (REST); realtime pending |
+| FR-5.1-01 | 5-tier RBAC policy-as-code | `domain/rbac/matrix.js`, `domain/rbac/policy.js:authorize`, `http/middleware/authenticate.js`, `routes/audit/rbac.js` | `unit/rbac/policy.test.js`, `tests/api/test_rbac_api.py::test_fr_5_1_01_probe_matrix` (85 cases), `tests/api/test_app_api.py` (role boundaries on every `/api/v1` route via `http/guard.js`) | Tested |
+| FR-5.1-02 | Tokens + login (API-14, APP-01) | `lib/jwt.js`, `services/auth.js:rbacMatrix/login/me` | `unit/rbac/jwt.test.js`, `tests/api/test_rbac_api.py::test_fr_5_1_02_*`, `tests/api/test_app_api.py::test_app_01_*` | Tested |
 | FR-SYS-01 | Health (API-01) | `routes/health.js:GET /health` | `tests/api/test_platform_api.py::test_fr_sys_01_health_exact_body` | Tested |
 | FR-SYS-02 | Reset + baseline (API-02) | `services/reset.js:resetAll`, `seed/baseline.js:seedBaseline` | `tests/api/test_platform_api.py::test_fr_sys_02_*` | Tested |
 | FR-SYS-03 | Rate-limited ping (API-16) | `http/middleware/rateLimit.js`, `lib/rateLimiter.js`, `routes/api/ping.js` | `unit/lib/rateLimiter.test.js`, `tests/api/test_security_api.py` | Tested |
-| FR-OFF-01 | Offline sync (API-17, APP-40) | `domain/sync/resolve.js`, `services/sync.js:process`, `routes/audit/offlineSync.js` | `unit/sync/resolve.test.js`, `tests/api/test_offline_sync_api.py` | Tested (APP-40 pending) |
+| FR-OFF-01 | Offline sync (API-17, APP-40) | `domain/sync/resolve.js`, `services/sync.js:process`, `routes/audit/offlineSync.js`, `routes/api/offlineSync.js` | `unit/sync/resolve.test.js`, `tests/api/test_offline_sync_api.py`, `tests/api/test_app_api.py::test_app_40_*` | Tested |
 | NFR-3 | Concurrency correctness | `services/store.js:checkoutInTx` | `tests/api/test_checkout_api.py::test_nfr3_*` (burst 20 x20, same-id parallel, multi-item) | Tested |
 | NFR-4 | Offline tolerance | `mobile/src/services/storage/*`, `mobile/src/services/sync/*` (planned) | `tests/api/test_offline_sync_api.py`, desk-check script in `docs/MOBILE.md` | Todo |
 | NFR-5 | Security | `lib/jwt.js`, `http/middleware/*`, `domain/rbac/*`, mobile `src/services/auth/session.ts` (planned) | `tests/api/test_security_api.py`, `tests/api/test_rbac_api.py` | Todo |
