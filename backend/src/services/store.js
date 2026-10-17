@@ -16,6 +16,7 @@ const gateway = require('../domain/store/mockGateway');
 const { receiptPayload } = require('../domain/store/receiptPayload');
 const { renderReceipt } = require('../pdf/receiptPdf');
 const store = require('../repos/store');
+const appRepo = require('../repos/app');
 const idem = require('../repos/idempotency');
 const hooks = require('./hooks');
 const outbox = require('../repos/outbox');
@@ -94,6 +95,14 @@ async function checkoutInTx(client, v, hash) {
   return { status: 201, body, variantIds: ids };
 }
 
+// After-commit: refresh cached catalogues and tell subscribers about the new stock levels.
+async function announceStock(variantIds) {
+  await hooks.catalogueChanged();
+  const [tenants, stock] = await Promise.all([appRepo.variantTenants(variantIds), Promise.all(variantIds.map((id) => store.getInventory(id)))]);
+  const tenantId = tenants.length ? tenants[0].tenant_id : null;
+  if (tenantId) hooks.inventoryChanged(tenantId, stock.filter(Boolean));
+}
+
 // input: parsed request body. Returns {status, body}.
 async function checkout(input) {
   const r = rules.validateCheckout(input);
@@ -102,7 +111,7 @@ async function checkout(input) {
   const hash = crypto.createHash('sha256').update(canonical(v)).digest('hex');
   try {
     const out = await withTx((client) => checkoutInTx(client, v, hash));
-    if (out.status === 201) await hooks.catalogueChanged();
+    if (out.status === 201) await announceStock(out.variantIds);
     return out;
   } catch (err) {
     if (!(err instanceof PaymentFailure)) throw err;

@@ -1,146 +1,130 @@
-# NaSCon '26 App Dev: Backend + Mobile Starter
+# NaSCon '26 Part I: Multi-Sport League & Club Operations Platform
 
-> Mobile handoff (2026-10-17): `mobile/` now contains an Expo/React Native
-> scaffold. Use [mobile/README.md](mobile/README.md) for its existing setup and
-> [mobile/SCREEN-PLAN.md](mobile/SCREEN-PLAN.md) for the pre-design review.
-> The backend starter examples below describe legacy behavior, not the target
-> contracts. [REQUIREMENTS.md](REQUIREMENTS.md) and
-> [ARCHITECTURE.md](ARCHITECTURE.md) govern port 8080, the error envelope and
-> the planned stack. Backend readiness has not been verified by the mobile review.
+> Mobile app: `mobile/` holds the Expo/React Native app. Setup is in [mobile/README.md](mobile/README.md), the desk-check
+> script in [docs/MOBILE.md](docs/MOBILE.md). Product behavior is owned by [REQUIREMENTS.md](REQUIREMENTS.md), structure by
+> [ARCHITECTURE.md](ARCHITECTURE.md), decisions by [ADR.md](ADR.md), working rules by [AGENTS.md](AGENTS.md).
 
-## What this is
+A multi-tenant sports league and club operations backend (Node 22 / Express 5, PostgreSQL 16, Redis 7, MinIO) with an
+event-sourced scoring engine, fixture generators, standings, club rosters, a concurrency-safe merchandise store, five-tier
+RBAC, offline-sync replay and a realtime WebSocket layer. It is graded through `/audit/v1/*` on `http://localhost:8080`; the
+mobile app uses `/api/v1/*` on the same server.
 
-A generic, domain-free starter for the 8-hour NaSCon '26 app-dev competition:
-
-- **Backend:** Node 20 + Express 5, PostgreSQL 16, Redis 7 (cache-aside), all in one root `docker-compose.yml` that the autograder runs as-is.
-- **Conventions baked in:** one consistent error body, strict input validation, malformed id is 400 and missing id is 404, conflicts are 409, ISO-8601 UTC timestamps, `snake_case` JSON.
-- **Test harness:** `node:test` unit tests, pytest API test vectors tagged with requirement IDs, an optional Selenium smoke test, a k6 smoke test and a CI workflow that mirrors the grader.
-- **Mobile:** Expo/React Native Android scaffold exists; only a placeholder screen is implemented ([mobile setup](mobile/README.md), [desk-check checklist](docs/MOBILE.md)).
-
-The only domain code is `backend/src/routes/example.js` (an `items` CRUD), which shows every convention. **Replace it on the day.**
-
-## Quick start
+## Run it (one command)
 
 ```bash
-cp .env.example .env          # optional; compose defaults are enough
-docker compose up --build -d --wait
-curl localhost:3000/health    # {"status":"ok","db":true,"cache":true}
+export DAY1_SALT=<the salt you were given>      # required; never written to a file we commit
+docker compose up -d --build
+./scripts/wait-for-health.sh http://localhost:8080/health 120     # → {"status":"ok"}
+curl -s -X POST localhost:8080/audit/v1/reset                      # baseline: tenants, sports, leagues, clubs, users, stock
 ```
 
-## Services and ports
+For the desk check (judge phone), add demo fixtures, rosters and products first: `SEED_DEMO_DATA=true docker compose up -d --build`
+(then `POST /audit/v1/reset` once). **Leave it off for the grader.** The compose project is `nascon`.
 
-| Service  | Image                | Host port               | Inside compose         | Notes |
-|----------|----------------------|-------------------------|------------------------|-------|
-| backend  | built from `backend/`| `${BACKEND_PORT:-3000}` | `http://backend:3000`  | healthcheck `/health` |
-| postgres | `postgres:16-alpine` | not published           | `postgres:5432`        | volume `pgdata` |
-| redis    | `redis:7-alpine`     | not published           | `redis:6379`           | cache only: 128 MB, `volatile-lru`, no persistence |
+| Service | Image | Host port | Notes |
+|---|---|---|---|
+| backend | built from `backend/` | **8080** | API + WebSocket; healthcheck `GET /health` (does not depend on MinIO) |
+| worker | same image | none | outbox relay → Redis Stream, consumer, receipt archive to MinIO, reservation sweeper |
+| postgres | `postgres:16-alpine` | none | source of truth, volume `pgdata` |
+| redis | `redis:7-alpine` | none | cache-aside for `/api/v1` reads + the `domain-events` stream |
+| minio | `minio/minio:RELEASE.2024-09-22T00-33-43Z` | none | bucket `receipts`, volume `miniodata` |
 
-Optional services (minio, rabbitmq, nats, ntfy, mediamtx, livekit, prometheus, grafana) are commented out in `docker-compose.yml`. Test-only services (Selenium grid on 4444, k6) are in `docker-compose.test.yml`, under profiles `ui`, `ui-firefox` and `perf`.
+## Demo accounts (password `Nascon@26`, recreated by every startup and `/reset`)
 
-## API conventions
-
-**Error body** (every 4xx/5xx, defined only in `backend/src/errors.js`):
-
-```json
-{ "error_code": "VALIDATION_ERROR", "message": "Request validation failed",
-  "details": [{ "field": "name", "issue": "is required" }] }
-```
-
-`details` appears only on validation errors. Responses never contain stack traces, SQL or file paths; the full error is logged server-side.
-
-| Situation | Status | `error_code` |
+| Role | Email | Scope |
 |---|---|---|
-| Missing/wrong-type/out-of-range field, body not an object | 400 | `VALIDATION_ERROR` |
-| Malformed JSON | 400 | `INVALID_JSON` |
-| Malformed id (`abc`, `0`, `1.5`, > 2147483647) | 400 | `VALIDATION_ERROR` |
-| Well-formed id that does not exist | 404 | `NOT_FOUND` |
-| Unknown route | 404 | `NOT_FOUND` |
-| Unique or foreign-key violation | 409 | `CONFLICT` |
-| Body over 1 MB | 413 | `PAYLOAD_TOO_LARGE` |
-| Auth missing or invalid / not allowed | 401 / 403 | `UNAUTHORIZED` / `FORBIDDEN` |
-| Anything unexpected | 500 | `INTERNAL_ERROR` |
+| Super Admin | `admin@nascon.test` | all tenants |
+| League Organizer | `organizer@nascon.test` | owns `league-alpha-1` (tenant-alpha) |
+| Club Manager | `manager@nascon.test` | `club-alpha-1` (tenant-alpha) |
+| Player | `player@nascon.test` | `player-alpha-1` (tenant-alpha) |
+| Viewer | `viewer@nascon.test` | read-only, tenant-alpha |
 
-**Validation** (`backend/src/validate.js`): runs before any DB or cache call and reports all problems at once. Strings are trimmed, and whitespace-only counts as empty. Unknown fields are stripped (or rejected with `strict: true`). Numeric strings are coerced only in query and path params, never in JSON bodies.
+Baseline ids: tenants `tenant-alpha`, `tenant-beta`; leagues `league-alpha-1`, `league-alpha-2`, `league-beta-1`; clubs
+`club-alpha-1`, `club-alpha-2`, `club-beta-1`; product `prod-jersey-001` with variants `var-jersey-001-M` (stock 1) and
+`var-jersey-001-L` (stock 5), price 450000 paisa; discount code `WELCOME10`.
 
-**Success codes:** POST returns 201 with the created object; GET and PATCH return 200; DELETE returns 204 with no body. Lists return `{ data, total, limit, offset }` (`limit` 1-100, default 20; `offset` >= 0).
+## API overview
 
-**Caching:** cached GETs send `X-Cache: HIT | MISS | BYPASS`. Writes invalidate before responding, so a read right after a write is always fresh. See [docs/CACHING.md](docs/CACHING.md).
+Errors always look like `{"error":{"code","message","details"}}` (codes: REQUIREMENTS §7). Timestamps are
+`YYYY-MM-DDTHH:MM:SSZ`; money is integer paisa. Full contracts: REQUIREMENTS §8.
 
-Every response carries `X-Request-Id`, which also appears in the log line for that request.
+| Area | Endpoints |
+|---|---|
+| System | `GET /health`, `POST /audit/v1/reset` |
+| Sports and scoring | `POST /audit/v1/sports`, `POST /audit/v1/events`, `GET /audit/v1/score/{match_id}` |
+| Leagues | `POST /audit/v1/leagues`, `GET /audit/v1/standings/{league_id}` |
+| Fixtures | `POST /audit/v1/fixtures` (round robin, Swiss, single and double elimination) |
+| Roster | `POST /audit/v1/roster/setup`, `POST /audit/v1/roster/transfer`, `GET /audit/v1/roster/history/{player_id}` |
+| Store | `POST /audit/v1/checkout`, `GET /audit/v1/inventory/{variant_id}` |
+| RBAC | `POST /audit/v1/rbac-matrix`, probes `/audit/v1/rbac/...`, `GET /api/v1/ping` |
+| Offline | `POST /audit/v1/offline-sync` |
+| Mobile (`/api/v1`, Bearer JWT) | auth `POST /auth/login`, `GET /me`; reads `GET /leagues`, `/leagues/{id}/fixtures`, `/leagues/{id}/standings`, `/matches/{id}`, `/clubs/{id}`, `/store/products`; writes `POST /matches/{id}/events`, `PUT /matches/{id}/pin`, `POST /clubs/{id}/players`, `POST /roster/transfers`, `PATCH /players/{id}`, `POST /store/checkout`, `POST /offline-sync`; orders `GET /store/orders[/{id}[/receipt.pdf]]`, `POST /store/orders/{id}/transition` |
+| Realtime | `GET /api/v1/ws?token=<jwt>` (topics `match:<id>`, `league:<id>`, `store:<tenant_id>`) |
+
+Not implemented (P2, no Phase I script grades them): match status changes `APP-12`, seasons/divisions/stages `APP-20..22`,
+manual rescheduling `APP-23`.
 
 ## Running tests
 
-Run pytest from inside `tests/`, because the report paths in `pytest.ini` are relative to it.
-
 ```bash
-scripts/run-tests.sh                  # compose up + node tests + pytest tests/api (host .venv)
-scripts/run-tests.sh --docker         # pytest inside python:3.12-slim (no host Python needed)
-scripts/run-tests.sh --destructive    # also stops/starts Redis to prove graceful bypass
-scripts/run-tests.sh ui               # + Selenium grid and tests/e2e-web
-docker compose -f docker-compose.yml -f docker-compose.test.yml --profile perf run --rm k6
-
-cd backend && npm test                # unit tests + health smoke (needs the stack up)
-cd tests && ../.venv/bin/pytest api -m "not destructive"
+./run_tests.sh                    # unit tests + line coverage → COVERAGE.json, then the API suite if the stack is up
+cd backend && node --test "tests/unit/**/*.test.js"                       # unit only (pure, no stack)
+cd tests && ../.venv/bin/pytest api -m "not destructive"                  # API vectors (BASE_URL defaults to :8080)
 ```
 
-Reports are written to `reports/` (`report.html`, `allure-results/`, `compose.log`). CI (`.github/workflows/ci.yml`) runs the same cold start and API tests on every push.
+The API suite needs `DAY1_SALT` exported to the same value as the server for the signature checks (default `dev-salt`), and
+`SEED_DEMO_DATA=true` on the server for the mobile-API and realtime tests (they skip themselves otherwise). Create the venv once:
+`python3 -m venv .venv && .venv/bin/pip install -r tests/requirements.txt`. Reports go to `reports/`.
 
 ## Repo layout
 
 ```
-docker-compose.yml        grader entry point (backend, postgres, redis)
-docker-compose.test.yml   selenium / k6 (profiles ui, ui-firefox, perf)
-backend/src/              index.js (boot) app.js config.js db.js migrate.js cache.js errors.js validate.js routes/
-backend/tests/            node:test unit + smoke tests
-tests/                    pytest: api/, e2e-web/, e2e-mobile/, perf/ (k6)
-mobile/                   Expo/React Native scaffold, tracked by the root repo
-docs/                     MOBILE, TEAM, CACHING, SPEC-CHECKLIST
-scripts/                  push, wait-for-health, run-tests, preflight, pull-images, transplant
-ADR.md, TRACEABILITY.md   graded documents (keep these exact names)
+docker-compose.yml        grader entry point (backend, worker, postgres, redis, minio)
+backend/src/              index.js (API boot) worker.js config.js db.js cache.js errors.js migrate.js
+  http/ lib/ domain/      middleware; pure helpers; pure rules (fixtures scoring standings roster store rbac sync leagues)
+  repos/ services/ routes/  SQL only; transactions and orchestration; thin HTTP mapping (audit/ and api/)
+  migrations/ seed/ queue/ realtime/ pdf/
+backend/tests/unit/       node:test, pure domain
+tests/api/                pytest contract vectors tagged @pytest.mark.req("<ID>")
+mobile/                   React Native app
+docs/                     IMPLEMENTATION-PLAN, CHANGELOG, spec/ (binding PDF), legacy starter guides
+TRACEABILITY.md COVERAGE.json run_tests.sh TASKS.md
 ```
+
+## Environment variables (all optional except `DAY1_SALT`; `.env.example` lists them)
+
+| Variable | Default | Used by |
+|---|---|---|
+| `DAY1_SALT` | none, required | api (signatures, token secret); never logged or committed |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `app` | compose |
+| `CACHE_ENABLED` / `CACHE_TTL_SECONDS` / `CACHE_TIMEOUT_MS` | `true` / `60` / `200` | api |
+| `SEED_DEMO_DATA` | `false` | api (demo fixtures for the desk check; off for the grader) |
+| `MOCK_GATEWAY_LATENCY_MS` | `0` | api (rehearse the checkout burst) |
+| `JWT_SECRET`, `JWT_TTL_SECONDS` | derived from the salt, `43200` | api |
+| `RATE_LIMIT_MAX` / `RATE_LIMIT_WINDOW_MS` | `100` / `10000` | api (spec values; changing them breaks grading) |
+| `S3_BUCKET_RECEIPTS`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD` | `receipts`, `minioadmin` | worker, minio |
+| `PG_POOL_MAX`, `LOG_LEVEL` | `20`, `info` | api |
+| `BASE_URL` | `http://localhost:8080` | host tests |
 
 ## Hourly push
 
 ```bash
-scripts/push.sh "REQ-03: add booking endpoint"    # commit, rebase onto origin, push
-scripts/push.sh                                    # "chore: hourly checkpoint HH:MM"
+scripts/push.sh "FR-1.1-04: scoring engine"      # commit, rebase onto origin, push
+scripts/push.sh                                  # "chore: hourly checkpoint HH:MM"
 ```
 
-The script refuses to push outside the competition windows (Asia/Karachi): before Day 1 10:45, between Day 1 15:05 and Day 2 10:15, and after Day 2 14:05. Override with `ALLOW_OUTSIDE_WINDOW=1`. The dates come from `COMP_DAY1` / `COMP_DAY2`, and `PUSH_NOW="YYYY-MM-DD HH:MM"` simulates the clock. On a rebase conflict it aborts the rebase, leaves the repo clean and prints the commands to finish by hand. It never force-pushes.
-
-## Environment variables
-
-| Variable | Default | Used by |
-|---|---|---|
-| `BACKEND_PORT` | `3000` | compose (host port) |
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `app` | compose |
-| `CACHE_ENABLED` | `true` | backend (`false` makes every cached GET `BYPASS`) |
-| `CACHE_TTL_SECONDS` | `60` | backend (±10% jitter applied) |
-| `CACHE_TIMEOUT_MS` | `200` | backend (per Redis call) |
-| `LOG_LEVEL` | `info` | backend |
-| `BASE_URL` | `http://localhost:3000` | host tests |
-| `SELENIUM_URL` / `APPIUM_URL` | `http://localhost:4444` / `:4723` | e2e tests |
-| `BROWSER_BASE_URL` | `http://backend:3000` | Selenium (browser runs inside compose) |
-| `RUN_DESTRUCTIVE` | `0` | pytest (Redis stop/start test) |
-| `APP_PATH` | none | Appium (`mobile/android/app/build/outputs/apk/debug/app-debug.apk`) |
-
-## Day-of checklist
-
-1. 10:00-10:44 check-in; confirm the repo has **0 commits** (no README, .gitignore or license).
-2. After 10:45: copy the skeleton in (`scripts/transplant.sh /path/to/repo`) or run the generator prompt inside the clone; commit and push.
-3. Fill `docs/SPEC-CHECKLIST.md`; apply spec overrides (compose ports, `errors.js`, `validate.js`, `cache.js`).
-4. Replace `backend/src/routes/example.js`; fill `TRACEABILITY.md` and `ADR.md` as you decide.
-5. Push at least hourly (2 points per miss). Final Day 1 push before **15:05**; final Day 2 push before **14:05**.
-6. **No pushes between 15:05 Day 1 and 10:15 Day 2.**
+The script refuses to push outside the competition windows (Asia/Karachi). Pushing is a human action: agents commit locally only.
+On a rebase conflict it aborts, leaves the repo clean and prints the commands to finish by hand. It never force-pushes.
 
 ## Troubleshooting
 
-- **Port 3000 in use:** `ss -ltnp | grep 3000`; stop the other process or run `BACKEND_PORT=3001 docker compose up -d` (the grader still uses the default).
+- **Port 8080 in use:** `ss -ltnp | grep 8080`; stop the other process. The grader needs host port 8080, so the port is fixed in `docker-compose.yml`.
 - **SELinux (Fedora) "permission denied" on bind mounts:** add `:z` to the mount (`./tests/perf:/scripts:ro,z`). Every mount in this repo already has it.
 - **Docker memory / OOM:** the core stack needs about 300 MB. Stop the Selenium grid when not in use: `docker compose -f docker-compose.yml -f docker-compose.test.yml --profile ui stop selenium-hub chrome`.
 - **CRLF line endings** (`/usr/bin/env: 'bash\r'`): `.gitattributes` forces LF; fix existing files with `sed -i 's/\r$//' scripts/*.sh`.
 - **`_JAVA_OPTIONS=-Xmx6G`:** every JVM (the Gradle daemon and each worker) gets a 6 GB heap, which can exhaust RAM on its own. Run `unset _JAVA_OPTIONS` and set `org.gradle.jvmargs=-Xmx2g` in `~/.gradle/gradle.properties`.
 - **`adb devices` shows `unauthorized`:** accept the RSA prompt on the phone (revoke USB debugging authorisations and replug if it never shows). **`no permissions`:** switch the USB mode to File Transfer, or add a udev rule for the vendor id and run `sudo udevadm control --reload-rules`.
 - **Metro `ENOSPC` / file watcher errors:** `echo fs.inotify.max_user_watches=524288 | sudo tee /etc/sysctl.d/99-inotify.conf && sudo sysctl --system`.
-- **Phone cannot reach the backend:** the Fedora Workstation firewalld zone normally opens 1025-65535. Check from the phone's browser: `http://<laptop-ip>:3000/health`. If it fails: `sudo firewall-cmd --add-port=3000/tcp --add-port=8081/tcp --add-port=4723/tcp` (add `--permanent` to keep it). Over USB, `adb reverse tcp:3000 tcp:3000` avoids the network entirely.
-- **Stale state:** `docker compose down -v && docker compose up --build -d --wait` gives a cold database, as the grader sees it.
+- **Phone cannot reach the backend:** the Fedora Workstation firewalld zone normally opens 1025-65535. Check from the phone's browser: `http://<laptop-ip>:8080/health`. If it fails: `sudo firewall-cmd --add-port=8080/tcp --add-port=8081/tcp --add-port=4723/tcp` (add `--permanent` to keep it). Over USB, `adb reverse tcp:8080 tcp:8080` avoids the network entirely.
+- **Stale state:** `POST /audit/v1/reset` restores the baseline without touching volumes. `docker compose down -v` (manual only, never scripted) gives a fully cold database, as the grader sees it.
+- **No DAY1_SALT:** the API refuses to start (`[boot] DAY1_SALT is missing or empty`) and compose warns that the variable is unset. Export it first; it is never stored in a file we commit.

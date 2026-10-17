@@ -30,6 +30,12 @@ async function pinProduct(principal, matchId, body) {
   }
   await appRepo.setPinned(matchId, body.product_id);
   await hooks.matchChanged(matchId, m.league_id);
+  let product = null;
+  if (body.product_id !== null) {
+    const prod = await appRepo.getProduct(body.product_id);
+    product = { product_id: prod.product_id, name: prod.name, category: prod.category, image_url: prod.image_url };
+  }
+  hooks.pinChanged(matchId, product);
   return { match_id: matchId, pinned_product_id: body.product_id };
 }
 

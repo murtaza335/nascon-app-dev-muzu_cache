@@ -33,4 +33,9 @@ module.exports = Object.freeze({
   reservationTtlSeconds: int(env.RESERVATION_TTL_SECONDS, 60),
   mockGatewayLatencyMs: int(env.MOCK_GATEWAY_LATENCY_MS, 0),
   seedDemoData: bool(env.SEED_DEMO_DATA, false),
+  s3Endpoint: env.S3_ENDPOINT || 'http://minio:9000',
+  s3Bucket: env.S3_BUCKET_RECEIPTS || 'receipts',
+  s3AccessKey: env.MINIO_ROOT_USER || 'minioadmin',
+  s3SecretKey: env.MINIO_ROOT_PASSWORD || 'minioadmin',
+  workerHeartbeatFile: env.WORKER_HEARTBEAT_FILE || '/tmp/worker.heartbeat',
 });

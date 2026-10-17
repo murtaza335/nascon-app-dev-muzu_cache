@@ -29,7 +29,7 @@ async function currentVersion(action, db = { query }) {
 }
 
 // Applies one action inside `client`'s transaction. Returns an action result or throws AppError (→ rejected).
-async function applyAction(client, action, order, rawBody, index) {
+async function applyAction(client, action, order, rawBody, index, after) {
   if (action.type === 'score_event') {
     const ev = eventsService.validateEvent(action.payload); // 400 → VALIDATION_ERROR
     const canonicalPayload = canonicalAt(rawBody, ['actions', index, 'payload', 'payload']);
@@ -47,6 +47,7 @@ async function applyAction(client, action, order, rawBody, index) {
     const res = resolve.appliedResolution(action.base_version, current);
     if (!res) { const e = new AppError(E.INVALID_BASE_VERSION); e.serverVersion = current; throw e; }
     const out = await eventsService.appendInTx(client, ev, canonicalPayload);
+    after.push(() => eventsService.announce(ev, out));
     return resolve.applied(action, order, res, out.body.match_version, out.body.signature);
   }
 
@@ -78,6 +79,7 @@ async function process(input, rawBody, opts = {}) {
     order += 1;
     const action = actions[index];
     let result;
+    const after = [];
     try {
       result = await withTx(async (client) => {
         await advisoryXactLock(client, `sync:${deviceId}:${action.action_id}`);
@@ -87,7 +89,7 @@ async function process(input, rawBody, opts = {}) {
           const denied = await opts.authorize(action, client);
           if (denied) { const e = new AppError(E.FORBIDDEN); e.serverVersion = await currentVersion(action, client); throw e; }
         }
-        const r = await applyAction(client, action, order, rawBody, index);
+        const r = await applyAction(client, action, order, rawBody, index, after);
         if (r.status === 'applied') await syncRepo.record(client, deviceId, action.action_id, r);
         return r;
       });
@@ -100,10 +102,8 @@ async function process(input, rawBody, opts = {}) {
       await withTx((client) => syncRepo.record(client, deviceId, action.action_id, result));
     }
     if (result.status === 'applied') {
-      if (action.type === 'score_event') {
-        const m = await matchesRepo.getMatch(action.payload.match_id);
-        await hooks.matchChanged(action.payload.match_id, m && m.league_id);
-      } else await hooks.clubsChanged();
+      for (const fn of after) await fn();
+      if (action.type === 'roster_transfer') await hooks.clubsChanged();
     }
     results[index] = result;
   }

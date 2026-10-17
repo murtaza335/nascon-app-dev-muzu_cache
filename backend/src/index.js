@@ -6,6 +6,8 @@ const cache = require('./cache');
 const { runMigrations } = require('./migrate');
 const { createApp } = require('./http/app');
 const { ensureBaseline } = require('./services/reset');
+const hooks = require('./services/hooks');
+const { createHub } = require('./realtime/ws');
 
 installProcessHandlers();
 
@@ -25,6 +27,9 @@ async function main() {
     console.log(`[boot] listening on 0.0.0.0:${config.port} (cache ${config.cacheEnabled ? 'enabled' : 'disabled'})`);
   });
   server.keepAliveTimeout = 65000;
+  const hub = createHub();
+  hub.attach(server);
+  hooks.setPublisher(hub.publish);
 
   let shuttingDown = false;
   async function shutdown(signal) {
@@ -34,6 +39,7 @@ async function main() {
     const force = setTimeout(() => process.exit(1), 5000);
     force.unref();
     const closed = new Promise((resolve) => server.close(resolve));
+    hub.close();
     server.closeIdleConnections(); // keep-alive sockets would otherwise hold close() open
     await closed;
     await db.pool.end().catch(() => {});

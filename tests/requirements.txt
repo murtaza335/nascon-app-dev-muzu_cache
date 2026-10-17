@@ -6,3 +6,4 @@ allure-pytest
 pytest-html
 pytest-timeout
 pypdf
+websocket-client

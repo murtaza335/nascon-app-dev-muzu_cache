@@ -115,13 +115,22 @@ async function appendInTx(client, ev, canonicalPayload) {
   return { status: 201, body, match };
 }
 
+// After-commit: cache invalidation + realtime frames for one appended event (also used by offline-sync).
+async function announce(ev, out) {
+  const event = {
+    sequence: out.body.sequence, event_id: ev.event_id, type: ev.type, payload: ev.payload, signature: out.body.signature,
+    compensated: false, compensated_by: null,
+  };
+  await hooks.eventAppended({ matchId: ev.match_id, leagueId: out.match && out.match.league_id, version: out.body.match_version, event });
+}
+
 // body: parsed request; rawBody: the exact request text (for lossless payload canonicalization).
 async function appendEvent(body, rawBody) {
   const ev = validateEvent(body);
   const canonicalPayload = canonicalAt(rawBody, ['payload']);
   const out = await withTx((client) => appendInTx(client, ev, canonicalPayload));
-  if (out.status === 201) await hooks.matchChanged(ev.match_id, out.match && out.match.league_id);
+  if (out.status === 201) await announce(ev, out);
   return out;
 }
 
-module.exports = { appendEvent, appendInTx, validateEvent, requestHash };
+module.exports = { appendEvent, appendInTx, announce, validateEvent, requestHash };

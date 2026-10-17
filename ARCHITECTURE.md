@@ -9,6 +9,35 @@
 
 ---
 
+## 0. Implementation status (2026-10-17)
+
+The backend described below is implemented (all `/audit/v1` contracts API-01..17, the `/api/v1` production routes except the
+P2 items, the worker and the realtime hub). Where the code differs from the sections below, **the code is current** and
+the difference is listed here and in `docs/CHANGELOG.md`:
+
+| Topic | Planned | Implemented |
+|---|---|---|
+| Compose service name | `api` | `backend` (plus `worker`, `postgres`, `redis`, `minio`) |
+| Checkout (§6.3) | two-phase reservation, sweeper | one transaction per checkout (order-id lock, variants `FOR UPDATE` in id order, rollback = release); `reserved` stays 0; `reservations` table and `queue/sweeper.js` are a safety net only |
+| Receipt PDF | `pdfkit` | hand-written uncompressed PDF (`pdf/receiptPdf.js`), no dependency |
+| Swiss matching | weighted blossom | exact branch-and-bound `domain/fixtures/pairing.js` (verified against brute force for n <= 10) |
+| Validator | `http/validate.js` | `lib/validate.js` (pure, used by domain code too); `http/validate.js` re-exports it |
+| JWT | `jsonwebtoken` | `lib/jwt.js` on `node:crypto` (HS256 pinned) |
+| Idempotency/order responses | jsonb | `text` so replays keep the original key order |
+| Lossless numbers | reviver `context.source` | `lib/canonical.js` re-parses `req.rawBody` for the signed sub-object (works on any Node) |
+| Cache keys | resource version | resource version + global epoch (bumped by `/reset`); invalidation in `services/hooks.js` |
+| Realtime | `realtime/ws.js` | same, plus topic `store:<tenant_id>` for `inventory.changed`; frames published from `services/hooks.js` |
+| New modules | | `http/guard.js` (authorization helper, pagination), `services/{appReads,appWrites,orders,hooks}.js`, `seed/demo.js`, `queue/{outbox,consumers,sweeper}.js`, `worker.js` |
+| New env vars | | `SEED_DEMO_DATA`, `MOCK_GATEWAY_LATENCY_MS`, `S3_ENDPOINT`, `S3_BUCKET_RECEIPTS`, `MINIO_ROOT_USER/PASSWORD`, `WORKER_HEARTBEAT_FILE` (see §9) |
+| Schema | | `roster_audit.loan_end_date`; `roster_audit.audit_seq` is allocated as max+1 under a global advisory lock so `au-NNNN` is gap-free |
+
+Verified commands: `./run_tests.sh` (unit + coverage + API suite), `cd backend && node --test "tests/unit/**/*.test.js"`,
+`cd tests && ../.venv/bin/pytest api`. Not yet verified on this machine: a cold `docker compose up -d --build` (the sandbox
+cannot reach Docker Hub or the npm registry from inside containers) and the real MinIO image (archive path verified against an
+S3-compatible stub).
+
+---
+
 ## 1. Goals and constraints
 
 | Goal / constraint | Source | Consequence |
