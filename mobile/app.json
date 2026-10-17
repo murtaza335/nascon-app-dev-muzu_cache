@@ -24,7 +24,8 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "./plugins/withReceipt.cjs"
+      "./plugins/withReceipt.cjs",
+      "./plugins/withCleartext.cjs"
     ]
   }
 }
