@@ -17,6 +17,7 @@ const { receiptPayload } = require('../domain/store/receiptPayload');
 const { renderReceipt } = require('../pdf/receiptPdf');
 const store = require('../repos/store');
 const idem = require('../repos/idempotency');
+const hooks = require('./hooks');
 const outbox = require('../repos/outbox');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -100,7 +101,9 @@ async function checkout(input) {
   const v = r.value;
   const hash = crypto.createHash('sha256').update(canonical(v)).digest('hex');
   try {
-    return await withTx((client) => checkoutInTx(client, v, hash));
+    const out = await withTx((client) => checkoutInTx(client, v, hash));
+    if (out.status === 201) await hooks.catalogueChanged();
+    return out;
   } catch (err) {
     if (!(err instanceof PaymentFailure)) throw err;
     await withTx(async (client) => {

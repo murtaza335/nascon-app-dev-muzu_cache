@@ -13,6 +13,7 @@ const matchesRepo = require('../repos/matches');
 const rosterRepo = require('../repos/roster');
 const idem = require('../repos/idempotency');
 const syncRepo = require('../repos/sync');
+const hooks = require('./hooks');
 
 
 // Version of the thing an action touches (0 when unknown): match event count, or the player's audit entry count.
@@ -97,6 +98,12 @@ async function process(input, rawBody, opts = {}) {
           ? 0 : await currentVersion(action);
       result = resolve.rejected(action, order, err.code, version);
       await withTx((client) => syncRepo.record(client, deviceId, action.action_id, result));
+    }
+    if (result.status === 'applied') {
+      if (action.type === 'score_event') {
+        const m = await matchesRepo.getMatch(action.payload.match_id);
+        await hooks.matchChanged(action.payload.match_id, m && m.league_id);
+      } else await hooks.clubsChanged();
     }
     results[index] = result;
   }

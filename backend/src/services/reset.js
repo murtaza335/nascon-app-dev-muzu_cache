@@ -2,6 +2,7 @@
 // FR-SYS-02 / API-02: wipe all domain state and recreate the exact baseline in ONE transaction.
 const { withTx, query } = require('../db');
 const { E, appError } = require('../errors');
+const hooks = require('./hooks');
 const { seedBaseline, defaultStock, SPORTS, TENANTS, DEFAULT_SEED, BASELINE_VERSION } = require('../seed/baseline');
 
 const RESET_LOCK = 727273;
@@ -24,6 +25,7 @@ async function resetAll({ seed = DEFAULT_SEED, stock = {} } = {}) {
     await client.query(`TRUNCATE ${TABLES.join(', ')} RESTART IDENTITY CASCADE`);
     await seedBaseline(client, { seed, stock });
   });
+  await hooks.everythingChanged();
   return {
     status: 'reset_complete',
     seed,

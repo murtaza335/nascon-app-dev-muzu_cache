@@ -15,6 +15,7 @@ const roster = require('../repos/roster');
 const sportsRepo = require('../repos/sports');
 const idem = require('../repos/idempotency');
 const outbox = require('../repos/outbox');
+const hooks = require('./hooks');
 
 const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
 
@@ -58,6 +59,13 @@ async function setup(input) {
   const r = validateSetup(input);
   if (!r.ok) throw validationError(r.details.fields);
   const v = r.value;
+  const out = await setupTx(v);
+  await hooks.clubsChanged();
+  await hooks.leaguesChanged();
+  return out;
+}
+
+async function setupTx(v) {
   return withTx(async (client) => {
     const sport = await sportsRepo.getSport(v.league.sport_id, client);
     if (!sport) throw new AppError(E.SPORT_NOT_FOUND);
@@ -162,7 +170,9 @@ async function transferInTx(client, req, opts = {}) {
 async function transfer(input) {
   const r = transferRules.validateTransfer(input);
   if (!r.ok) throw validationError(r.details.fields);
-  return withTx((client) => transferInTx(client, r.value));
+  const out = await withTx((client) => transferInTx(client, r.value));
+  if (out.status === 201) await hooks.clubsChanged();
+  return out;
 }
 
 // ---- API-11 ---------------------------------------------------------------------------------------------------

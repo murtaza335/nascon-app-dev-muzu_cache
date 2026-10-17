@@ -75,8 +75,9 @@ async function cached(resource, keyParts, loader, { ttl = config.cacheTtlSeconds
 
   let key;
   try {
-    const version = (await withTimeout(client.get(verKey(resource)))) || '0';
-    key = `${PREFIX}:${resource}:v${version}:${stableStringify(keyParts)}`;
+    // Key carries the global epoch (bumped by /reset) and the resource version (bumped by writes).
+    const [epoch, version] = await withTimeout(client.mGet([verKey('epoch'), verKey(resource)]));
+    key = `${PREFIX}:${resource}:e${epoch || '0'}:v${version || '0'}:${stableStringify(keyParts)}`;
     const hit = await withTimeout(client.get(key));
     if (hit !== null) return { value: JSON.parse(hit), status: 'HIT' };
   } catch (err) {

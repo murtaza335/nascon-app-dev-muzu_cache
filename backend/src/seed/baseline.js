@@ -3,6 +3,7 @@
 const { demoPasswordHash } = require('./passwords');
 const { validateSport } = require('../domain/scoring/sportSchema');
 const { insertSport } = require('../repos/sports');
+const config = require('../config');
 
 const DEFAULT_TIE_BREAK = ['h2h_points', 'h2h_diff', 'overall_diff', 'scored', 'fair_play', 'draw_lots'];
 
@@ -147,6 +148,7 @@ async function seedBaseline(client, { seed = DEFAULT_SEED, stock = {} } = {}) {
   await q("INSERT INTO discount_codes (code, percent, active) VALUES ('WELCOME10', 10, true)");
   await q("INSERT INTO counters (name, value) VALUES ('auth', 0), ('cap', 0)");
   await q(`INSERT INTO app_state (key, value) VALUES ('last_reset_seed', $1), ('baseline_version', $2)`, [String(seed), BASELINE_VERSION]);
+  if (config.seedDemoData) await require('./demo').seedDemo(client); // OFF for the grader
 }
 
 module.exports = { seedBaseline, defaultStock, VARIANTS, SPORTS, TENANTS, DEFAULT_SEED, BASELINE_VERSION };

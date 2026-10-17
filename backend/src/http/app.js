@@ -14,6 +14,12 @@ const rosterRoutes = require('../routes/audit/roster');
 const syncRoutes = require('../routes/audit/offlineSync');
 const rbacRoutes = require('../routes/audit/rbac');
 const pingRoutes = require('../routes/api/ping');
+const authApi = require('../routes/api/auth');
+const { authenticate } = require('./middleware/authenticate');
+const apiRouters = [
+  authApi.protectedRouter, require('../routes/api/leagues'), require('../routes/api/matches'), require('../routes/api/clubs'),
+  require('../routes/api/roster'), require('../routes/api/store'), require('../routes/api/offlineSync'),
+];
 const { rateLimit } = require('./middleware/rateLimit');
 
 // Middleware order (ARCHITECTURE §7.1): requestId → bodyLimit/jsonBody → routers → notFound → errorHandler.
@@ -34,7 +40,8 @@ function createApp() {
   app.use('/audit/v1', storeRoutes);
   app.use('/audit/v1', rosterRoutes);
   app.use('/audit/v1', syncRoutes);
-  app.use('/api/v1', rateLimit, pingRoutes);
+  // /api/v1: rate limit → public routes (ping, login) → authentication → protected routes.
+  app.use('/api/v1', rateLimit, pingRoutes, authApi.publicRouter, authenticate, ...apiRouters);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

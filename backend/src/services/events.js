@@ -16,6 +16,7 @@ const eventsRepo = require('../repos/events');
 const idem = require('../repos/idempotency');
 const outbox = require('../repos/outbox');
 const leaguesRepo = require('../repos/leagues');
+const hooks = require('./hooks');
 
 const ENVELOPE = {
   event_id: t.id({ required: true }),
@@ -118,7 +119,9 @@ async function appendInTx(client, ev, canonicalPayload) {
 async function appendEvent(body, rawBody) {
   const ev = validateEvent(body);
   const canonicalPayload = canonicalAt(rawBody, ['payload']);
-  return withTx((client) => appendInTx(client, ev, canonicalPayload));
+  const out = await withTx((client) => appendInTx(client, ev, canonicalPayload));
+  if (out.status === 201) await hooks.matchChanged(ev.match_id, out.match && out.match.league_id);
+  return out;
 }
 
 module.exports = { appendEvent, appendInTx, validateEvent, requestHash };

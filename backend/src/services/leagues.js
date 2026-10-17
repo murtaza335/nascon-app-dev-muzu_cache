@@ -6,12 +6,13 @@ const { validateLeague } = require('../domain/leagues/leagueSchema');
 const sportsRepo = require('../repos/sports');
 const leaguesRepo = require('../repos/leagues');
 const matchesRepo = require('../repos/matches');
+const hooks = require('./hooks');
 
 async function registerLeague(input) {
   const r = validateLeague(input);
   if (!r.ok) throw validationError(r.details.fields);
   const v = r.value;
-  return withTx(async (client) => {
+  const out = await withTx(async (client) => {
     const sport = await sportsRepo.getSport(v.sport_id, client);
     if (!sport) throw new AppError(E.SPORT_NOT_FOUND);
     const seed = v.lots_seed !== undefined ? v.lots_seed : await leaguesRepo.lastResetSeed(client);
@@ -32,6 +33,8 @@ async function registerLeague(input) {
     }
     return { league_id: v.league_id, status: 'created', team_count: v.teams.length, fixture_count: v.fixtures.length };
   });
+  await hooks.leaguesChanged();
+  return out;
 }
 
 module.exports = { registerLeague };

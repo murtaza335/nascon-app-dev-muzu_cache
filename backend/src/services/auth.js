@@ -3,6 +3,10 @@
 const config = require('../config');
 const jwt = require('../lib/jwt');
 const users = require('../repos/users');
+const appRepo = require('../repos/app');
+const passwords = require('../seed/passwords');
+const { AppError, E, validationError } = require('../errors');
+const { isoSeconds } = require('../lib/time');
 
 const secret = () => config.jwtSecret || jwt.deriveSecret(config.day1Salt);
 const nowSec = () => Math.floor(Date.now() / 1000);
@@ -48,4 +52,36 @@ async function rbacMatrix() {
   return { tokens, context: CONTEXT };
 }
 
-module.exports = { issueToken, verifyToken, principalFromClaims, rbacMatrix };
+const userView = (u) => ({
+  user_id: u.user_id, email: u.email, role: u.role, tenant_id: u.tenant_id, display_name: u.display_name,
+  league_ids: u.league_ids, club_id: u.club_id, player_id: u.player_id,
+});
+
+async function tenantView(tenantId) {
+  if (!tenantId) return null;
+  const t = await appRepo.getTenant(tenantId);
+  if (!t) return null;
+  return { tenant_id: t.tenant_id, name: t.name, logo_url: t.logo_url, colors: { primary: t.colors.primary ?? null, secondary: t.colors.secondary ?? null } };
+}
+
+// APP-01. The same error for an unknown email and a wrong password; a dummy verify keeps the timing alike.
+async function login(input) {
+  const fields = [];
+  if (!input || typeof input.email !== 'string' || input.email.length < 1 || input.email.length > 254) fields.push('email');
+  if (!input || typeof input.password !== 'string' || input.password.length < 1 || input.password.length > 200) fields.push('password');
+  if (fields.length) throw validationError(fields);
+  const user = await users.findByEmail(input.email.trim());
+  const ok = passwords.verify(input.password, user ? user.password_hash : passwords.demoPasswordHash());
+  if (!user || !ok) throw new AppError(E.INVALID_CREDENTIALS);
+  const { token, claims } = issueToken(user);
+  return { token, expires_at: isoSeconds(new Date(claims.exp * 1000)), user: userView(user), tenant: await tenantView(user.tenant_id) };
+}
+
+// APP-02
+async function me(principal) {
+  const user = await appRepo.getUserById(principal.user_id);
+  if (!user) throw new AppError(E.UNAUTHENTICATED);
+  return { user: userView(user), tenant: await tenantView(user.tenant_id) };
+}
+
+module.exports = { issueToken, verifyToken, principalFromClaims, rbacMatrix, login, me };
