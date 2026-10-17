@@ -510,7 +510,7 @@ retryable failures, explicit demo credentials and visible mock-mode labeling.
 
 ## 12. Verification architecture
 
-| Level | Scope | Tool / command (proposed unless marked current) |
+| Level | Scope | Tool / command (verified unless marked proposed) |
 |---|---|---|
 | Unit | `domain/**`, `lib/**` (pure), with spec examples and App. A vectors as fixtures | `cd backend && node --test tests/unit` |
 | Coverage | per area → `COVERAGE.json` | `./run_tests.sh` → `node --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=../reports/lcov.info tests/unit` + `node ../scripts/coverage-areas.js` |

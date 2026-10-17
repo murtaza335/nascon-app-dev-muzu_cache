@@ -22,21 +22,21 @@ persistence, server RBAC or device acceptance tests; requirement statuses remain
 | ID | Requirement | Code (planned) | Tests (planned) | Status |
 |---|---|---|---|---|
 | FR-1.1-01 | Mystery sport from JSON (API-03) | `backend/src/domain/scoring/sportSchema.js`, `services/sports.js`, `routes/audit/sports.js` | `backend/tests/unit/scoring/sportSchema.test.js`, `tests/api/test_sports_api.py` | Todo |
-| FR-1.1-02 | Seeded sports | `backend/src/seed/baseline.js` | `tests/api/test_reset_api.py` | Todo |
+| FR-1.1-02 | Seeded sports | `seed/baseline.js:seedBaseline` (through `validateSport`) | `tests/api/test_sports_api.py::test_fr_1_1_02_seeded_sports_exist`, `unit/scoring/sportSchema.test.js` | Tested |
 | FR-1.1-03 | Event/innings/round models + limits | `domain/scoring/projection.js:build`, `domain/scoring/eventRules.js` | `unit/scoring/projection.test.js`, `unit/scoring/eventRules.test.js`, `tests/api/test_events_api.py::test_fr_1_1_03_*` | Tested |
 | FR-1.1-04 | Event sourcing, compensation, score projection (API-06/07) | `services/events.js:appendEvent`, `services/score.js:getScore`, `repos/events.js`, `routes/audit/events.js` | `tests/api/test_events_api.py` | Tested |
-| FR-1.1-05 | No hard-coded sport logic | CI grep step (`.github/workflows/ci.yml`) | CI job | Todo |
-| FR-1.2-01 | Seasons/divisions/stages (P2) | `services/leagueStructure.js` | `unit/…` | Todo |
+| FR-1.1-05 | No hard-coded sport logic | `scripts/static-guards.sh` (CI step in `.github/workflows/ci.yml`) | static guard (fails on a planted violation, verified) | Tested |
+| FR-1.2-01 | Seasons/divisions/stages (P2) | not implemented (APP-20..22) | none | Descoped (P2, not graded in Phase I) |
 | FR-1.2-02 | Register league (API-05) | `domain/leagues/leagueSchema.js:validateLeague`, `services/leagues.js:registerLeague`, `routes/audit/leagues.js` | `tests/api/test_leagues_api.py` | Tested |
 | FR-1.3-01 | Round-robin | `domain/fixtures/roundRobin.js:generate` | `unit/fixtures/roundRobin.test.js`, `tests/api/test_fixtures_api.py` | Tested |
 | FR-1.3-02 | Swiss | `domain/fixtures/swiss.js:generate`, `domain/fixtures/pairing.js:bestPairing` (exact search; replaces blossom, see CHANGELOG) | `unit/fixtures/swiss.test.js`, `tests/api/test_fixtures_api.py` | Tested |
 | FR-1.3-03 | Single elimination | `domain/fixtures/singleElim.js:generate`, `domain/fixtures/bracket.js` | `unit/fixtures/elim.test.js`, `tests/api/test_fixtures_api.py` | Tested |
 | FR-1.3-04 | Double elimination | `domain/fixtures/doubleElim.js:generate` | `unit/fixtures/elim.test.js` (graph validator B=4..128), `tests/api/test_fixtures_api.py` | Tested |
-| FR-1.3-05 | Rescheduling conflicts (P2) | `domain/fixtures/conflicts.js` | `unit/fixtures/conflicts.test.js` | Todo |
-| FR-1.3-06 | Match status machine + broadcast | `domain/scoring/eventRules.js`, `services/matches.js`, `realtime/ws.js` | `tests/api/test_events_api.py`, `tests/api/test_realtime.py` | Todo |
+| FR-1.3-05 | Rescheduling conflicts (P2) | not implemented (APP-23) | none | Descoped (P2, not graded in Phase I) |
+| FR-1.3-06 | Match status machine + broadcast | `domain/scoring/eventRules.js:checkState`, `services/hooks.js:eventAppended`, `realtime/ws.js` | `tests/api/test_events_api.py::test_fr_1_1_04_state_machine_errors`, `tests/api/test_realtime.py` | Tested (graded subset upcoming→in_progress→completed); APP-12 postpone/cancel/abandon descoped (P2) |
 | FR-1.4-01 | Standings (API-08) | `domain/standings/{table,tiebreak,qualification,nrr,index}.js`, `lib/pyround.js`, `services/standings.js:getStandings` | `unit/standings/*.test.js`, `tests/api/test_standings_api.py` | Tested |
 | FR-2.1-01 | Club profile | `services/appReads.js:clubProfile`, `routes/api/clubs.js` | `tests/api/test_app_api.py::test_app_30_club_profile_and_isolation` | Tested |
-| FR-2.1-02 | Tenant branding + isolation | `seed/baseline.js`, `domain/rbac/policy.js` | `tests/api/test_rbac_api.py` | Todo |
+| FR-2.1-02 | Tenant branding + isolation | `seed/baseline.js` (tenant colors), `services/auth.js:login/me` (branding), `domain/rbac/policy.js` | `tests/api/test_app_api.py::test_app_01_login_each_demo_account`, `tests/api/test_rbac_api.py` | Tested |
 | FR-2.2-01 | Roster setup (API-09) | `domain/roster/setupSchema.js`, `services/roster.js:setup`, `routes/audit/roster.js` | `tests/api/test_roster_api.py::test_fr_2_2_01_*` | Tested |
 | FR-2.2-02 | Transfer/loan/release checks (API-10) | `domain/roster/transferRules.js:decide`, `services/roster.js:transfer` | `unit/roster/roster.test.js`, `tests/api/test_roster_api.py::test_fr_2_2_02_*` | Tested |
 | FR-2.2-03 | Loan auto-return | `domain/roster/loanReturn.js:dueReturns`, `services/roster.js:materializeReturns` | `unit/roster/roster.test.js`, `tests/api/test_roster_api.py::test_fr_2_2_03_*` | Tested |
@@ -55,14 +55,14 @@ persistence, server RBAC or device acceptance tests; requirement statuses remain
 | FR-OFF-01 | Offline sync (API-17, APP-40) | `domain/sync/resolve.js`, `services/sync.js:process`, `routes/audit/offlineSync.js`, `routes/api/offlineSync.js` | `unit/sync/resolve.test.js`, `tests/api/test_offline_sync_api.py`, `tests/api/test_app_api.py::test_app_40_*` | Tested |
 | NFR-3 | Concurrency correctness | `services/store.js:checkoutInTx` | `tests/api/test_checkout_api.py::test_nfr3_*` (burst 20 x20, same-id parallel, multi-item) | Tested |
 | NFR-4 | Offline tolerance | `mobile/src/services/storage/*`, `mobile/src/services/sync/*` (planned) | `tests/api/test_offline_sync_api.py`, desk-check script in `docs/MOBILE.md` | Todo |
-| NFR-5 | Security | `lib/jwt.js`, `http/middleware/*`, `domain/rbac/*`, mobile `src/services/auth/session.ts` (planned) | `tests/api/test_security_api.py`, `tests/api/test_rbac_api.py` | Todo |
-| NFR-7 | Reproducibility | `docker-compose.yml`, `backend/src/index.js` | CI cold start (`.github/workflows/ci.yml`) | Todo |
-| NFR-PERF-01 | Latency bounds | all | `tests/perf/smoke.js`, timing asserts in pytest | Todo |
-| NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js` | `unit/scoring/signature.test.js` (App. A vector 1) | Todo |
+| NFR-5 | Security | `lib/jwt.js`, `http/middleware/*`, `domain/rbac/*`, `scripts/sql-guard.js`, mobile `src/services/auth/session.ts` (planned) | `tests/api/test_security_api.py`, `tests/api/test_rbac_api.py`, 4.7k-request fuzz run (0 × 5xx, see report) | Tested (backend); mobile storage pending |
+| NFR-7 | Reproducibility | `docker-compose.yml`, `backend/src/index.js`, `Dockerfile` | CI cold start (`.github/workflows/ci.yml`); `docker compose config` verified locally | In progress: cold `up --build` NOT run on this machine (no registry access from the sandbox) |
+| NFR-PERF-01 | Latency bounds | all services | timing asserts in `tests/api/test_checkout_api.py` (burst < 10 s), `tests/api/test_platform_api.py` (reset < 10 s); manual load run: 681 req/s, p95 140 ms | Tested |
+| NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js:sign` | `unit/scoring/signature.test.js` (App. A vector 1), `tests/api/test_events_api.py::test_nfr_sig_*`, `tests/api/test_checkout_api.py` | Tested |
 | MOB-01…12 | Mobile screens/offline | `mobile/src/features/**`, `navigation/AppNavigator.tsx`, `app/previewData.ts:getPreviewData` | `mobile/tests/screens.test.cjs` (12 display/navigation checks), `mockData.test.cjs` (6 integrity checks); desk checks pending | In progress (UI only) |
-| NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js:sign` | `unit/scoring/signature.test.js` (App. A vector 1) | Tested |
+| NFR-SIG | Signatures | `lib/canonical.js`, `lib/signature.js:sign` | `unit/scoring/signature.test.js` (App. A vector 1), `tests/api/test_events_api.py::test_nfr_sig_*`, `tests/api/test_checkout_api.py` | Tested |
 | MOB-01…12 | Mobile screens/offline | `mobile/src/**` | desk-check script, optional `tests/e2e-mobile` | Todo |
-| DEL-01…08 | Deliverables | repo root files | Appendix C checklist (REQUIREMENTS §11) | Todo |
+| DEL-01…08 | Deliverables | `docker-compose.yml`, `.env.example`, `README.md`, `TRACEABILITY.md`, `run_tests.sh`, `COVERAGE.json` | Appendix C checklist (REQUIREMENTS §11) | In progress: APK (DEL-06) and push windows (DEL-07) are human/mobile items |
 
 
 ## Mobile design evidence (UI only, 2026-10-17)

@@ -9,7 +9,11 @@ on:
 jobs:
   grade:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+    env:
+      # CI-only values: the real salt is never stored in the repo. SEED_DEMO_DATA lets the mobile-API/realtime tests run.
+      DAY1_SALT: ci-salt
+      SEED_DEMO_DATA: "true"
     steps:
       - uses: actions/checkout@v4
 
@@ -21,7 +25,10 @@ jobs:
           nested="$(find . -name .git -not -path './.git' -prune)"
           if [ -n "$nested" ]; then echo "::error::nested git repo(s): $nested"; exit 1; fi
           if git ls-files --error-unmatch .env >/dev/null 2>&1; then echo "::error::.env is tracked"; exit 1; fi
-          chmod +x scripts/*.sh
+          chmod +x scripts/*.sh run_tests.sh
+
+      - name: Static guards (sport literals, pure domain, parameterized SQL, secrets)
+        run: ./scripts/static-guards.sh
 
       - name: Cold start like the grader
         run: docker compose up --build -d --wait
@@ -36,9 +43,9 @@ jobs:
       - name: Install test deps
         run: pip install -r tests/requirements.txt
 
-      - name: Backend tests
+      - name: Unit tests with coverage (writes COVERAGE.json)
         working-directory: backend
-        run: npm test
+        run: npm ci && cd .. && ./run_tests.sh 2>&1 | tail -40
 
       - name: API tests
         working-directory: tests
