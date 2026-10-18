@@ -40,6 +40,7 @@ test('NFR-4: network failures never become fabricated success responses', async 
 test('MOB-10: server addresses reject credentials, fragments, and non-HTTP schemes', () => {
   for (const value of ['file:///a', 'https://user:pass@server', 'https://server/#token', 'https://server/?token=x']) assert.throws(() => normalizeServer(value));
   assert.equal(normalizeServer(' http://10.0.2.2:8080/ '), 'http://10.0.2.2:8080');
+  assert.equal(normalizeServer('10.195.242.35'), 'http://10.195.242.35:8080');
 });
 test('APP-13: score projection maps nested sides, venue and corrections without computing scores', () => {
   const events = [{ event_id: 'e', sequence: 1, type: 'score', payload: {}, compensated: true }];
@@ -137,7 +138,7 @@ test('MOB-10: backend default, saved development addresses and public override s
     delete process.env.EXPO_PUBLIC_API_URL;
     const config = load('config/env.ts');
     assert.equal(config.API_BASE_URL, 'http://10.195.242.35:8080');
-    for (const url of ['http://10.0.2.2:8080', 'http://localhost:8080/', 'http://127.0.0.1:8080']) {
+    for (const url of ['http://10.0.2.2:8080', 'http://localhost:8080/', 'http://127.0.0.1:8080', 'http://172.15.59.213:8080']) {
       assert.equal(config.restoreServerUrl(url), config.API_BASE_URL);
     }
     assert.equal(config.restoreServerUrl('https://custom.test'), 'https://custom.test');

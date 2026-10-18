@@ -38,9 +38,11 @@ def test_t3_cart_count_and_live_score_sync(driver, base_web, api_base):
     banner = driver.find_element(By.CSS_SELECTOR, '[data-testid="live-score-banner"]')
     before = banner.text
     home, away = (int(x) for x in before.split(" - "))
-    started = time.time()
     r = requests.post(f"{api_base}/audit/v1/events", json={"event_id": f"sel-{uuid.uuid4().hex[:8]}", "match_id": "match-m1", "type": "score",
                                                            "payload": {"team_id": "club-alpha-1", "event_type": "goal"}}, timeout=10)
     assert r.status_code == 201
-    WebDriverWait(driver, 2, poll_frequency=0.025).until(lambda d: d.find_element(By.CSS_SELECTOR, '[data-testid="live-score-banner"]').text == f"{home + 1} - {away}")
-    assert time.time() - started < 2.0
+    response_received_at = time.perf_counter()
+    WebDriverWait(driver, 0.5, poll_frequency=0.01).until(
+        lambda d: d.find_element(By.CSS_SELECTOR, '[data-testid="live-score-banner"]').text == f"{home + 1} - {away}"
+    )
+    assert time.perf_counter() - response_received_at < 0.5

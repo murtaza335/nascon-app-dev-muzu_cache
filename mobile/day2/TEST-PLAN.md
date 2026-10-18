@@ -50,6 +50,7 @@ Use the exact harness and environment rules in root `day2/QA-HARNESS.md`. The re
 Additional browser coverage:
 
 - keyboard-only navigation;
+- WCAG AA palette contrast checks, visible keyboard focus, native dialog focus containment/Escape behavior, and 48 × 48 CSS px target checks (automated in `tests/selenium/test_guest_accessibility.py`);
 - Chrome and Firefox;
 - mobile and desktop widths;
 - co-stream route;

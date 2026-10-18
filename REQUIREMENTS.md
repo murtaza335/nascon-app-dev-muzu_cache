@@ -681,7 +681,7 @@ No update or delete of sports, events or audit entries. No deletion of leagues, 
 | MOB-07 | Roster management (Club Manager) | Add / transfer / loan / release a player, with confirmation before risky actions | APP-31/32 |
 | MOB-08 | Scoring entry (League Organizer) | Append a score event and a compensating event | APP-15 |
 | MOB-09 | Sync status | An always-visible online / offline / syncing indicator and the pending-action queue | APP-40 |
-| MOB-10 | Settings | Server base URL (default `http://10.195.242.35:8080`; editable in Settings). Saved localhost/emulator addresses migrate to the configured default at startup; custom addresses are preserved. Logout | §8.1 |
+| MOB-10 | Settings | Server base URL (default `http://10.195.242.35:8080`; editable in Settings). A bare host/IP is normalized to `http://<host>:8080`. Saved previous-default, localhost and emulator addresses migrate to the configured default at startup; custom addresses are preserved. Logout | §8.1 |
 | MOB-11 | Offline cache | Fixtures, standings and club profiles cached in **SQLite**; cached screens open offline with an "Offline" indicator | NFR-4 |
 | MOB-12 | Offline queue | Scoring and roster actions are queued persistently in SQLite in the exact §5.14 action format, survive a force-close, appear as "pending", sync automatically on reconnect (plus a Sync button), show per-action results (applied / rejected + plain-language reason) and clear the queue | NFR-4, FR-OFF-01 |
 

@@ -5,9 +5,13 @@ export class ApiError extends Error {
   }
 }
 export function normalizeServer(value: string) {
-  const url = new URL(value.trim());
+  const raw = value.trim();
+  const hasScheme = /^[a-z][a-z\d+.-]*:\/\//i.test(raw);
+  const url = new URL(hasScheme ? raw : `http://${raw}`);
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash)
     throw new Error('Enter an http:// or https:// server address without credentials, queries or fragments.');
+  if (!hasScheme && url.protocol === 'http:' && !url.port)
+    url.port = '8080';
   return url.toString().replace(/\/+$/, '');
 }
 export function createClient(server: string, token?: string, unauthorized?: () => Promise<void>) {
