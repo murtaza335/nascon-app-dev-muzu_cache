@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0b0f14">
+  <title>{{PAGE_TITLE}} · Sportron</title><link rel="stylesheet" href="/web/assets/app.css">
+  <script type="application/json" id="boot">{{BOOT_JSON}}</script><script defer src="/web/assets/page.js"></script>
+</head>
+<body><div class="page-shell">
+  <header class="topbar"><a class="brand" href="/web/" aria-label="Sportron home">SPORTRON<span>LIVE</span></a>
+    <div class="match-heading"><p class="eyebrow">{{PAGE_KICKER}}</p><h1 id="page-title">{{PAGE_TITLE}}</h1></div>
+    <div class="header-actions"><a class="open-app-link" data-testid="open-in-app-link" href="{{OPEN_APP_URI}}">Open in app</a><span class="connection-state" id="page-status" role="status" aria-live="polite">Loading…</span></div>
+  </header>
+  <main id="page-content" class="route-content" aria-live="polite">
+    <section class="route-loading"><div class="score-banner" data-testid="live-score-banner" role="status" aria-live="polite">—</div>
+      <div class="video-frame"><video data-testid="guest-video-player" aria-label="Live match video" controls muted playsinline autoplay poster="/web/assets/stream-poster.svg"></video></div>
+      <section class="panel" data-testid="pinned-merch-card"><h2>Featured merchandise</h2><button data-testid="add-to-guest-cart-btn" type="button">Add to cart</button><p>Guest cart <span data-testid="guest-cart-count">0</span></p></section>
+      <section class="panel"><ul data-testid="chat-message-list" role="log" aria-live="polite" aria-label="Live chat"></ul><label class="visually-hidden" for="chat-input">Chat message</label><input id="chat-input" data-testid="chat-input-field" aria-label="Chat message"><button data-testid="chat-send-btn" type="button">Send</button></section>
+      <p class="loading-state">Loading securely from Sportron…</p>
+    </section>
+  </main>
+  <dialog class="auth-modal" data-testid="progressive-auth-modal" id="progressive-auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <form method="dialog" class="modal-close-form"><button class="icon-button" aria-label="Close sign in dialog">×</button></form>
+    <p class="eyebrow">Continue with Sportron</p><h2 id="auth-title">Sign in to continue</h2><p>Your place on this page will be kept.</p>
+    <div class="auth-tabs" role="tablist" aria-label="Account access"><button type="button" role="tab" aria-selected="true" id="page-login-tab">Log in</button><button type="button" role="tab" aria-selected="false" id="page-register-tab">Create account</button></div>
+    <form id="auth-form"><label id="page-name-label" for="page-name" hidden>Name</label><input id="page-name" name="display_name" autocomplete="name" hidden><label for="auth-email">Email</label><input id="auth-email" name="email" type="email" autocomplete="email" required>
+      <label for="auth-password">Password</label><input id="auth-password" name="password" type="password" autocomplete="current-password" required>
+      <p id="auth-error" class="form-feedback" role="alert"></p><button id="auth-submit" type="submit">Log in</button>
+    </form>
+  </dialog>
+</div></body></html>

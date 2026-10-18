@@ -29,6 +29,14 @@ export function HomeScreen() {
 
     <WorkSection />
 
+    <Section title="Live & discover">
+      <Button label="Scan a match or athlete QR" kind="secondary" onPress={() => n.navigate('QRScanner')} />
+      <Button label="Creator studio" kind="secondary" onPress={() => n.navigate('GoLive')} />
+      {p.session && <Button label="Create or join a co-stream" kind="secondary" onPress={() => n.navigate('CoStreamEntry')} />}
+      {p.session && <Button label={p.notifications.length ? `Notifications (${p.notifications.length})` : 'Notifications'} kind="quiet" onPress={() => n.navigate('Notifications')} />}
+      {next?.status === 'in_progress' && <Button label="Watch this match live" onPress={() => n.navigate('MatchLive', { matchId: next.match_id })} />}
+    </Section>
+
     <Section title={next?.status === 'in_progress' ? 'Match in progress' : 'Next match'} action="All fixtures" onAction={() => n.navigate('Main', { screen: 'Fixtures' })}>
 
       {next ? <>

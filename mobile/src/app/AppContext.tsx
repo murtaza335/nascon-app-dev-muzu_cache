@@ -11,6 +11,7 @@ import { emptyWorkspace,newId,PendingAction,Preferences,storage,Workspace } from
 import { setPalette } from '../theme/tokens';
 import type { CartLine,Connection,HistoryEntry,Role } from '../types/models';
 export const roleNames: Record<Role, string> = { viewer: 'Viewer', player: 'Player', club_manager: 'Club Manager', league_organizer: 'League Organizer', super_admin: 'Super Admin' };
+export type Day2Notification = { id: string; type: string; title: string; message: string; match_id?: string; session_id?: string; order_id?: string; invite_token?: string; received_at: string };
 const defaults: Preferences = { serverUrl: API_BASE_URL, theme: 'light' };
 const utc = () => new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
 function useAppValue() {
@@ -36,6 +37,7 @@ function useAppValue() {
   const [syncing, setSyncing] = useState(false);
   const [leagueId, setLeagueId] = useState<string>();
   const [cartUndo, setCartUndo] = useState<CartLine[] | null>(null);
+  const [notifications, setNotifications] = useState<Day2Notification[]>([]);
   const watched = useRef(new Map<string, number>());
   const socket = useRef<WebSocket | null>(null);
   const systemTheme = useColorScheme();
@@ -114,6 +116,7 @@ function useAppValue() {
       setNetworkOnline(online.current);
     });
   }, []);
+  useEffect(() => { setNotifications([]); }, [session?.userId, session?.tenantId, session?.serverUrl]);
   /** `label` marks user-started work that blocks input behind the loading overlay; background work passes none. */
   async function withLock<T>(job: () => Promise<T>, fallback: T, label?: string): Promise<T> {
     if (locked.current)
@@ -318,6 +321,7 @@ function useAppValue() {
     const ws = new WebSocket(`${session.serverUrl.replace(/^http/, 'ws')}/api/v1/ws?token=${encodeURIComponent(session.token)}`);
     socket.current = ws;
     ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'subscribe', topic: `user:${session.userId}` }));
       for (const league of work.current.data.leagues)
         ws.send(JSON.stringify({ type: 'subscribe', topic: `league:${league.league_id}` }));
       for (const matchId of watched.current.keys())
@@ -330,6 +334,12 @@ function useAppValue() {
         frame = JSON.parse(event.data);
       }
       catch {
+        return;
+      }
+      if (typeof frame.type === 'string' && ['costream.invite', 'order.status_changed', 'match.score_updated', 'costream.participant_changed', 'costream.host_changed'].includes(frame.type)) {
+        const payload = frame.data || frame.payload || frame;
+        const id = String(frame.notification_id || payload.notification_id || `${frame.type}:${payload.session_id || payload.match_id || payload.order_id || ''}:${payload.created_at || payload.status || ''}`);
+        setNotifications(old => old.some(item => item.id === id) ? old : [{ id, type: frame.type, title: frame.type === 'costream.invite' ? 'Co-stream invitation' : frame.type === 'order.status_changed' ? 'Order update' : frame.type.includes('match') ? 'Live score update' : 'Co-stream update', message: payload.message || payload.status || 'There is a new update.', match_id: payload.match_id, session_id: payload.session_id || payload.costream_id, invite_token: payload.invite_token, order_id: payload.order_id, received_at: payload.created_at || new Date().toISOString() }, ...old].slice(0, 50));
         return;
       }
       if (!['match.event_appended', 'match.status_changed', 'match.pinned_product_changed', 'standings.changed', 'inventory.changed'].includes(frame.type))
@@ -567,7 +577,7 @@ function useAppValue() {
   const data = { ...workspace.data, eventTypes: eventsFor(), queue: [...workspace.pending.map(x => ({ action_id: x.action_id, queued_at: x.queued_at, label: x.type === 'score_event' ? 'Match event' : 'Registration change', status: 'pending' as const, reason: undefined })), ...workspace.outcomes] };
   const connection: Connection = syncing ? 'syncing' : networkOnline ? 'online' : 'offline';
   return {
-    data, role: session?.user.role || 'viewer' as Role, connection, selectedLeague, setLeagueId, serverUrl: preferences.serverUrl, setServerUrl: changeServer,
+    data, role: session?.user.role || 'viewer' as Role, connection, selectedLeague, setLeagueId, serverUrl: preferences.serverUrl, setServerUrl: changeServer, notifications,
     cart: workspace.cart, setCart, message, setMessage, notify, addToCart, setTenantId, session, ready, bootError, retryBoot: load, busy, blocking, refreshing, resourceError, refresh, run, login, logout, sync,
     theme, themePreference: preferences.theme, setTheme, pendingCount: workspace.pending.length, undoCart, canUndoCart: !!cartUndo, watchMatch, fetchHistory, fetchProduct, fetchOrder, eventsFor, exportReceipt
   };

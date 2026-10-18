@@ -63,16 +63,41 @@ export function LeadingTeams({ rows }: {
   rows: Standing[];
 }) {
   return <View style={{ flexDirection: 'row', gap: 8 }}>
-    {rows.slice(0, 3).map(row => <View key={row.team_id} style={{ flex: 1, minWidth: 0, backgroundColor: row.rank === 1 ? c.olive : c.surface, padding: 12, borderRadius: 12, gap: 8 }}>
-      <T variant="caption" color={c.secondary}>{`#${(row.rank)}`}</T>
-      <T variant="strong">
+    {rows.slice(0, 3).map(row => <View key={row.team_id} style={{
+      flex: 1,
+      minWidth: 0,
+      backgroundColor: row.rank === 1 ? c.olive : c.surface,
+      padding: 14,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: row.rank === 1 ? c.accent : c.divider,
+      gap: 6,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 4,
+      elevation: 2,
+    }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{
+          backgroundColor: row.rank === 1 ? c.accent : c.raised,
+          paddingHorizontal: 8,
+          paddingVertical: 2,
+          borderRadius: 8,
+        }}>
+          <T variant="caption" color={row.rank === 1 ? c.onAccent : c.secondary} style={{ fontWeight: '700', fontSize: 11 }}>
+            {`#${row.rank}`}
+          </T>
+        </View>
+        <T variant="caption" color={c.secondary} style={{ fontSize: 11 }}>
+          PTS
+        </T>
+      </View>
+      <T variant="strong" numberOfLines={1} style={{ fontSize: 14 }}>
         {row.name || row.team_id}
       </T>
-      <T variant="title" color={c.accent}>
+      <T variant="title" color={c.accent} style={{ fontWeight: '700' }}>
         {row.points}
-      </T>
-      <T variant="caption" color={c.secondary}>
-        points
       </T>
     </View>)}
   </View>;

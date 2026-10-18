@@ -12,14 +12,10 @@ export function Badge({ label, tone = 'neutral' }: {
   tone?: Tone;
 }) {
   const [fg, bg] = tones()[tone];
-  return <View style={{ alignSelf: 'flex-start', backgroundColor: bg, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 }}>
-
-    <T variant="label" color={fg}>
-
+  return <View style={{ alignSelf: 'flex-start', backgroundColor: bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+    <T variant="label" color={fg} numberOfLines={1} style={{ fontSize: 12, lineHeight: 16 }}>
       {label}
-
     </T>
-
   </View>;
 }
 export function Message({ title, description, tone = 'info' }: {

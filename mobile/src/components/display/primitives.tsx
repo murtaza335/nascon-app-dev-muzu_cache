@@ -4,7 +4,10 @@ import { colors as c,radius,space,type } from '../../theme/tokens';
 import { Icon,IconName } from '../Icon';
 const styles = () => StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md }, between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md }, wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }, grow: { flex: 1, minWidth: 0 },
-  section: { gap: 10 }, divider: { height: 1, backgroundColor: c.divider }, card: { backgroundColor: c.surface, padding: space.xl, borderRadius: radius.card, gap: space.lg }, inset: { padding: space.lg, borderRadius: radius.field, backgroundColor: c.raised, gap: space.sm }, text: { ...type.body, color: c.text }, secondary: { ...type.caption, color: c.secondary }
+  section: { gap: 12 }, divider: { height: 1, backgroundColor: c.divider },
+  card: { backgroundColor: c.surface, padding: space.xl, borderRadius: radius.card, borderWidth: 1, borderColor: c.divider, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 8, elevation: 2, gap: space.lg },
+  inset: { padding: space.lg, borderRadius: radius.field, backgroundColor: c.raised, borderWidth: 1, borderColor: c.divider, gap: space.sm },
+  text: { ...type.body, color: c.text }, secondary: { ...type.caption, color: c.secondary }
 });
 export const ui = new Proxy({} as ReturnType<typeof styles>, { get: (_, key: keyof ReturnType<typeof styles>) => styles()[key] });
 export function T({ children, variant = 'body', color = c.text, style, ...props }: {

@@ -1,6 +1,6 @@
 import { View } from 'react-native';
 import { colors } from '../theme/tokens';
-export type IconName = 'home' | 'fixtures' | 'standings' | 'store' | 'person' | 'roster' | 'score' | 'back' | 'next' | 'down' | 'close' | 'plus' | 'minus' | 'check' | 'settings' | 'sync' | 'wifi' | 'clock';
+export type IconName = 'home' | 'fixtures' | 'standings' | 'store' | 'person' | 'roster' | 'score' | 'back' | 'next' | 'down' | 'close' | 'plus' | 'minus' | 'check' | 'settings' | 'sync' | 'wifi' | 'clock' | 'mail' | 'lock' | 'eye' | 'eye-off';
 /** Small, consistent line icons drawn with native geometry; no font/icon package. */
 export function Icon({ name, color = colors.secondary, size = 24 }: {
   name: IconName;
@@ -89,6 +89,33 @@ export function Icon({ name, color = colors.secondary, size = 24 }: {
 
         {line('c', 17, 11, 3)}
 
+      </>;
+      break;
+    case 'mail':
+      shapes = <>
+        <View style={[stroke, { position: 'absolute', left: 2, top: 5, width: 20, height: 14, borderRadius: 3 }]} />
+        {line('flap1', 3, 7, 10, '30deg')}
+        {line('flap2', 11, 7, 10, '-30deg')}
+      </>;
+      break;
+    case 'lock':
+      shapes = <>
+        <View style={[stroke, { position: 'absolute', left: 6, top: 3, width: 12, height: 10, borderTopLeftRadius: 6, borderTopRightRadius: 6, borderBottomWidth: 0 }]} />
+        <View style={[stroke, { position: 'absolute', left: 4, top: 11, width: 16, height: 11, borderRadius: 3 }]} />
+        <View style={{ position: 'absolute', left: 11, top: 14, width: 2, height: 4, borderRadius: 1, backgroundColor: color }} />
+      </>;
+      break;
+    case 'eye':
+      shapes = <>
+        <View style={[stroke, { position: 'absolute', left: 2, top: 7, width: 20, height: 10, borderRadius: 8 }]} />
+        <View style={{ position: 'absolute', left: 9, top: 9, width: 6, height: 6, borderRadius: 3, backgroundColor: color }} />
+      </>;
+      break;
+    case 'eye-off':
+      shapes = <>
+        <View style={[stroke, { position: 'absolute', left: 2, top: 7, width: 20, height: 10, borderRadius: 8 }]} />
+        <View style={{ position: 'absolute', left: 9, top: 9, width: 6, height: 6, borderRadius: 3, backgroundColor: color }} />
+        {line('slash', 3, 11, 19, '-45deg')}
       </>;
       break;
     default: shapes = <>

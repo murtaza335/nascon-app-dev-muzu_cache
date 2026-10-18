@@ -2,6 +2,7 @@
   "expo": {
     "name": "Sportron",
     "slug": "sportron",
+    "scheme": "nascon",
     "sdkVersion": "54.0.0",
     "version": "1.0.0",
     "orientation": "default",
@@ -24,6 +25,9 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      ["expo-camera", { "cameraPermission": "Allow Sportron to scan match, athlete, and club QR codes." }],
+      "@config-plugins/react-native-webrtc",
+      "./plugins/withNasconScheme.cjs",
       "./plugins/withReceipt.cjs",
       "./plugins/withCleartext.cjs"
     ]

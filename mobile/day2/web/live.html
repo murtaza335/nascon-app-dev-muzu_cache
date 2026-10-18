@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0f14">
+  <title>{{HOME_NAME}} vs {{AWAY_NAME}} · Sportron Live</title>
+  <link rel="stylesheet" href="/web/assets/app.css">
+  <script type="application/json" id="boot">{{BOOT_JSON}}</script>
+  <script defer src="/web/assets/live.js"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="/web/" aria-label="Sportron home">SPORTRON<span>LIVE</span></a>
+      <div class="match-heading">
+        <p class="eyebrow">Live match</p>
+        <h1>{{HOME_NAME}} <span aria-hidden="true">vs</span> {{AWAY_NAME}}</h1>
+      </div>
+      <div class="header-actions"><a class="open-app-link" data-testid="open-in-app-link" href="nascon://entity/{{MATCH_ID}}">Open in app</a>
+        <span class="live-pill is-live"><span class="live-dot" aria-hidden="true"></span> LIVE</span></div>
+    </header>
+
+    <main class="match-layout">
+      <section class="main-column" aria-label="Match broadcast">
+        <div class="score-row">
+          <div class="team-name">{{HOME_NAME}}</div>
+          <div class="score-banner" data-testid="live-score-banner" role="status" aria-live="polite">{{SCORE_TEXT}}</div>
+          <div class="team-name">{{AWAY_NAME}}</div>
+        </div>
+        <div class="video-frame">
+          <video data-testid="guest-video-player" aria-label="Live match video" controls muted playsinline autoplay poster="/web/assets/stream-poster.svg"></video>
+          <p class="stream-status" data-testid="stream-status" role="status">{{STREAM_STATUS_TEXT}}</p>
+        </div>
+      </section>
+
+      <aside class="side-column" aria-label="Match details">
+        <section class="panel merch-card" data-testid="pinned-merch-card" data-variant-id="{{VARIANT_ID}}" aria-labelledby="merch-title">
+          <p class="eyebrow">Featured merchandise</p>
+          <div id="merch-title">
+            <h2>{{PRODUCT_NAME}}</h2>
+            <p class="product-price">{{PRODUCT_PRICE}}</p>
+            <button data-testid="add-to-guest-cart-btn" data-variant-id="{{VARIANT_ID}}" type="button">Add to cart</button>
+          </div>
+          <p class="cart-summary">Guest cart <span data-testid="guest-cart-count" aria-live="polite">0</span></p>
+          <p class="form-feedback" id="cart-feedback" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="panel chat-panel" aria-labelledby="chat-title">
+          <div class="section-heading">
+            <div><p class="eyebrow">Join the crowd</p><h2 id="chat-title">Match chat</h2></div>
+            <span class="connection-state" data-testid="connection-state" role="status">Connecting</span>
+          </div>
+          <ul class="message-list" data-testid="chat-message-list" role="log" aria-live="polite" aria-relevant="additions text" aria-label="Live match chat">
+            <li class="empty-chat">No messages yet. Be the first to react.</li>
+          </ul>
+          <form class="chat-form" id="chat-form">
+            <label class="visually-hidden" for="chat-input">Chat message</label>
+            <input data-testid="chat-input-field" id="chat-input" type="text" aria-label="Chat message" maxlength="2000" autocomplete="off" placeholder="Write a message…">
+            <button data-testid="chat-send-btn" type="submit">Send</button>
+          </form>
+          <p class="form-feedback" id="chat-feedback" role="status" aria-live="polite"></p>
+        </section>
+      </aside>
+    </main>
+
+    <dialog class="auth-modal" data-testid="progressive-auth-modal" id="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <form method="dialog" class="modal-close-form"><button class="icon-button" aria-label="Close sign in dialog">×</button></form>
+      <p class="eyebrow">Continue with Sportron</p>
+      <h2 id="auth-title">Sign in to join in</h2>
+      <p id="auth-description">Your guest cart and place in the stream will be kept.</p>
+      <div class="auth-tabs" role="tablist" aria-label="Account access">
+        <button type="button" role="tab" aria-selected="true" id="login-tab">Log in</button>
+        <button type="button" role="tab" aria-selected="false" id="register-tab">Create account</button>
+      </div>
+      <form id="auth-form">
+        <label for="auth-email">Email</label><input id="auth-email" name="email" type="email" autocomplete="email" required>
+        <label for="auth-password">Password</label><input id="auth-password" name="password" type="password" autocomplete="current-password" required>
+        <label id="display-name-label" for="display-name" hidden>Name</label><input id="display-name" name="display_name" autocomplete="name" hidden>
+        <p id="auth-error" class="form-feedback" role="alert"></p>
+        <button id="auth-submit" type="submit">Log in</button>
+      </form>
+    </dialog>
+  </div>
+</body>
+</html>

@@ -46,6 +46,14 @@ export type StackParams = {
   RosterManagement: {
     clubId?: string;
   } | undefined;
+  EntityRoute: { entityId: string };
+  MatchLive: { matchId: string };
+  CoStreamView: { sessionId: string; publishUrl?: string };
+  CoStreamControl: { sessionId: string };
+  GoLive: undefined;
+  QRScanner: undefined;
+  Notifications: undefined;
+  CoStreamEntry: { inviteToken?: string } | undefined;
 };
 export type AppNavigation = NativeStackNavigationProp<StackParams>;
 export type TabParams = {

@@ -30,6 +30,7 @@ import { ProductDetailScreen } from '../features/store/ProductDetailScreen';
 import { ReceiptScreen } from '../features/store/ReceiptScreen';
 import { StoreScreen } from '../features/store/StoreScreen';
 import { SyncStatusScreen } from '../features/sync/SyncStatusScreen';
+import { AthleteProfileScreen, CoStreamControlScreen, CoStreamEntryScreen, CoStreamScreen, EntityRouteScreen, GoLiveScreen, MatchLiveScreen, NotificationsScreen, QRScannerScreen } from '../features/day2/Day2Screens';
 import { colors as c } from '../theme/tokens';
 import type { StackParams,TabParams } from './routes';
 const Stack = createNativeStackNavigator<StackParams>();
@@ -41,15 +42,28 @@ function MainTabs() {
   const shortLandscape = width > height && height < 500;
   const insets = useSafeAreaInsets();
   return <Tabs.Navigator initialRouteName="Home" backBehavior="history" screenOptions={({ route }) => ({
-    headerShown: false, sceneStyle: { backgroundColor: c.background }, tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.divider, height: (shortLandscape ? 64 : 72 + Math.max(0, fontScale - 1) * 70) + insets.bottom, paddingTop: 8, paddingBottom: Math.max(8, insets.bottom) }, tabBarLabel: ({ focused }) => <T variant="label" numberOfLines={1} color={focused ? c.accent : c.muted} style={{ textAlign: 'center', paddingTop: shortLandscape ? 0 : 4 }}>
-
+    headerShown: false,
+    sceneStyle: { backgroundColor: c.background },
+    tabBarStyle: {
+      backgroundColor: c.surface,
+      borderTopColor: c.divider,
+      borderTopWidth: 1,
+      height: (shortLandscape ? 64 : 72 + Math.max(0, fontScale - 1) * 70) + insets.bottom,
+      paddingTop: 8,
+      paddingBottom: Math.max(8, insets.bottom),
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.04,
+      shadowRadius: 6,
+      elevation: 6,
+    },
+    tabBarLabel: ({ focused }) => <T variant="label" numberOfLines={1} color={focused ? c.accent : c.muted} style={{ textAlign: 'center', paddingTop: shortLandscape ? 0 : 3, fontWeight: focused ? '700' : '500', fontSize: 12 }}>
       {compactLabels && route.name === 'Fixtures' ? 'Games' : compactLabels && route.name === 'Standings' ? 'Table' : route.name}
-
-    </T>, tabBarIcon: ({ focused }) => <View style={{ backgroundColor: focused ? c.olive : 'transparent', width: 48, height: 28, borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-
-      <Icon name={icons[route.name]} color={focused ? c.accent : c.muted} />
-
-    </View>, tabBarAccessibilityLabel: route.name === 'Club' ? 'Club and profile' : route.name
+    </T>,
+    tabBarIcon: ({ focused }) => <View style={{ backgroundColor: focused ? c.olive : 'transparent', width: 52, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' }}>
+      <Icon name={icons[route.name]} color={focused ? c.accent : c.muted} size={22} />
+    </View>,
+    tabBarAccessibilityLabel: route.name === 'Club' ? 'Club and profile' : route.name
   })}>
 
     <Tabs.Screen name="Home" component={HomeScreen} />
@@ -67,17 +81,28 @@ function MainTabs() {
 export function AppNavigator() {
   const p = useApp();
   const base = p.theme === 'dark' ? DarkTheme : DefaultTheme;
-  return <NavigationContainer key={p.session ? `${p.session.userId}:${p.session.tenantId}:${p.serverUrl}` : 'signed-out'} theme={{ ...base, colors: { ...base.colors, primary: c.accent, background: c.background, card: c.surface, text: c.text, border: c.divider, notification: c.accent } }}>
+  return <NavigationContainer key={p.session ? `${p.session.userId}:${p.session.tenantId}:${p.serverUrl}` : 'signed-out'} linking={{ prefixes: ['nascon://'], config: { screens: { EntityRoute: 'entity/:entityId', CoStreamView: 'stream/:sessionId' } } }} theme={{ ...base, colors: { ...base.colors, primary: c.accent, background: c.background, card: c.surface, text: c.text, border: c.divider, notification: c.accent } }}>
 
     <Stack.Navigator initialRouteName={p.session ? 'Main' : 'Login'} screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.background }, animation: 'none' }}>
 
       <Stack.Screen name="Settings" component={SettingsScreen} />
+
+      {/* Public Day 2 routes stay registered before and after member authentication. */}
+      <Stack.Screen name="EntityRoute" component={EntityRouteScreen} />
+      <Stack.Screen name="MatchLive" component={MatchLiveScreen} />
+      <Stack.Screen name="CoStreamView" component={CoStreamScreen} />
+      <Stack.Screen name="QRScanner" component={QRScannerScreen} />
+      <Stack.Screen name="GoLive" component={GoLiveScreen} />
+      <Stack.Screen name="CoStreamEntry" component={CoStreamEntryScreen} />
 
       {!p.session ? <Stack.Screen name="Login" component={LoginScreen} /> : <>
 
         <Stack.Screen name="Main" component={MainTabs} />
 
         <Stack.Screen name="MatchDetail" component={MatchDetailScreen} />
+
+        <Stack.Screen name="CoStreamControl" component={CoStreamControlScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
 
         <Stack.Screen name="ClubProfile" component={ClubProfileScreen} />
 
