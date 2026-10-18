@@ -130,7 +130,8 @@ services:
       - "4443:4443"
       - "4444:4444"
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:4444/status | grep -q '\"ready\": *true'"]
+      # The hub only reports ready:true once nodes registered, and nodes wait for a healthy hub: probe reachability here.
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:4444/status > /dev/null || exit 1"]
       interval: 5s
       timeout: 3s
       retries: 20
