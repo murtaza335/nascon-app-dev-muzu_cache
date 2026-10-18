@@ -7,6 +7,8 @@ Android app judged at the desk.
 command; (3) offline-capable mobile app + APK; (4) P2 features. **Hard lock 15:00 PKT; last push ≤ 15:05:00 PKT.**
 
 ## 1. Read before every task (in this order)
+> **Day 2 (Part II, 2026-10-18):** start with [`day2/README.md`](day2/README.md). Day 2 requirements, the backend and frontend contracts, architecture, plan and push windows live in `day2/` and win over the Phase I files for Part II behaviour (see `day2/REQUIREMENTS.md` §9).
+
 1. `AGENTS.md` (this file): how we work.
 2. [`REQUIREMENTS.md`](REQUIREMENTS.md): **owns product behavior and API contracts** (requirement IDs, BR-* rules, API-/APP-/RT- contracts).
 3. [`ARCHITECTURE.md`](ARCHITECTURE.md): **owns implementation structure** (modules, data, config, runtime, caching).
