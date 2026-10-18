@@ -5,6 +5,7 @@ Organizers' written clarifications are also recorded here.
 
 | When (PKT) | Files | Change | Reason |
 |---|---|---|---|
+| 2026-10-18 backend URL | `mobile/src/config/env.ts`, `mobile/src/app/AppContext.tsx`, Settings, mobile env example/tests, REQUIREMENTS, ARCHITECTURE, ADR, TRACEABILITY, mobile setup docs | Set current mobile backend to `http://10.195.242.35:8080`; migrate saved localhost/emulator defaults while preserving custom servers and server-scoped pending work | Explicit user backend address; replaces emulator default, keeps grader/Compose addresses local. Verification: mobile npm test 20/20, npm run typecheck and git diff --check pass; remote /health blocked by sandbox socket permissions; native device check not run |
 | 2026-10-17 backend link | `mobile/plugins/withCleartext.cjs`, `mobile/app.json` | Added config plugin setting `android:usesCleartextTraffic="true"` (already decided in ADR-017 but never implemented); no new dependency | App could not call the plain-http API from a release build; running backend container also predated the `/context` route and was rebuilt locally |
 | 2026-10-17 UI polish | `mobile/src/components/{motion,ui}.tsx`, `mobile/src/theme/tokens.ts`, `mobile/src/app/{App,AppContext}.tsx`, 13 feature screens, `mobile/DESIGN-BRIEF.md` | Production-style overlays and loading states: animated bottom sheet (grabber, raised `overlay` surface, hairline edge, elevation), centered `Dialog`, inverse-surface auto-dismissing `Toast` with Undo, delayed blocking `LoadingOverlay` for user-started actions (background sync/cart only show a thin `ProgressBar`), frosted backdrop, per-screen skeleton layouts, image-loading placeholders, press-scale feedback; all respect reduced motion. Fixed stale "Online · Mock service" label and a non-UTF-8 byte in `ui.tsx` | User request. Blur is a frosted scrim, not a real blur: user chose no new native dependency (expo-blur declined), so ARCHITECTURE §3 is unchanged |
 | 2026-10-17 UI slice | `mobile/src/**`, package/lock, tests, root/mobile design/status docs | Implemented all 21 UI previews with approved theme, typed role navigation, Screen Studio and separately owned mock data adapter; added 12 display/navigation checks; documented installed approved navigation versions and ADR-020; corrected stale placeholder/planned claims | Explicit user authorization for screens before backend; preserve contracts, permissions, offline requirements and acceptance gaps. Native verification remains blocked by emulator RAM. |
@@ -53,3 +54,38 @@ Organizers' written clarifications are also recorded here.
 - Updated conflicting prototype docs and mobile AGENTS test/infrastructure guidance; ADR-022 supersedes mock architecture.
 - TypeScript, 15 mobile tests, 89 authorization tests and 4 APP-03 service tests, prebuild and Hermes export pass. Full compose blocked by MinIO image pull; native build exhausted host memory. Device acceptance pending; no push/judging-device installation.
 - 2026-10-17: Added `scripts/seed-mock-data.sh` + `backend/src/seed/mockData.js`: small realistic mock set in tenant-alpha / league-alpha-2 (4 squads, 18 players, 6 fixtures incl. a live match, a VAR-disallowed goal and a yellow card, a loan with audit entry, 3 shop products with a scheduled price rise, 4 orders incl. a declined payment, a pinned showcase). Runs through the application services (signed events, cache epoch bump), idempotent, wiped by `/reset`; does not run at startup and is not used by the grader.
+
+## 2026-10-18 - Mobile source replacement (ADR-023)
+- Preserved original `mobile/src` as `mobile/src1`; new self-contained source replaces
+  all 21 core screens plus existing management/order screens. No commits or pushes.
+- User-approved mineral/forest light theme, deliberate dark theme, shared accessible
+  primitives, compact navigation and consistent confirmation/state handling.
+- Kept real API, Keychain, SQLite, sync and receipt services; added product/order
+  detail reads and known roster-history queue versions. Removed silent LAN override.
+- Reconciled historical mock-screen descriptions with the active production source
+  in design, screen-plan and architecture documentation. No API contracts changed.
+- TypeScript and 18 mobile tests pass; native/backend journey acceptance remains
+  explicitly pending. Backend localhost refused connection; previous LAN timed out.
+
+Android Hermes export also passed (885 modules); native captures were rejected as
+stale/black while the phone was dozing. Full details: [verification](../mobile/qa-redesign/VERIFICATION.md).
+
+## 2026-10-18 - User-directed mobile flow redesign
+The user rejected the first replacement as too similar to the original. REQUIREMENTS
+section 9 now records Home as the initial role-aware workspace and five stable
+core tabs, with prominent role tasks on Home and detail pages. All existing
+capabilities, permissions, API contracts, offline behavior and src1 backup remain.
+The second iteration restructures shared components and feature compositions.
+
+Final native review passed for reviewed scope: portrait/light/dark plus 360x640 with 1.3 text and landscape. Disabled button contrast, compact labels and landscape bar height were corrected. TypeScript, 20 tests and Android Hermes export pass. Backend-dependent journeys remain blocked by server availability. See mobile/qa-redesign/VERIFICATION.md.
+
+## 2026-10-18 - Sportron brand and visual refinement
+- User display brand is Sportron; PRODUCT and mobile configuration updated.
+- Removed promotional/repeated screen text and grouped headings with related data.
+- Added dark forest appbars and focused score/club/work panels within light theme;
+  existing dark mode retained, with explicit tested foreground contrast.
+- Preserved internal app/storage identifiers, source backup, API behavior and features.
+- TypeScript, unused-code checks and 20 tests pass. Hermes export passes 900 modules.
+  Offline Android debug build passes 244 tasks; APK label Sportron verified and installed
+  over the existing development app. No commits or pushes. Native capture evidence
+  and remaining limitations are recorded in mobile/qa-redesign/SPORTRON.md.

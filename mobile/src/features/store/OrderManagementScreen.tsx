@@ -1,10 +1,75 @@
-import { useState } from 'react';
 import { useRoute } from '@react-navigation/native';
+import { useEffect,useState } from 'react';
 import { useApp } from '../../app/AppContext';
-import { Badge, Button, Empty, humanize, Message, money, Row, Screen, Section, Select, Sheet, T } from '../../components/ui';
-export function OrderManagementScreen(){
-  const p=useApp();const route=useRoute();const params=route.params as {orderId?:string}|undefined;const orders=p.data.orders;const [orderId,setOrder]=useState(params?.orderId||orders[0]?.order_id);const [to,setTo]=useState<string>();const [review,setReview]=useState(false);const order=orders.find(x=>x.order_id===orderId);
-  const transitions:Record<string,string[]>={pending:['cancelled'],paid:['packed','cancelled','refunded'],packed:['shipped','cancelled','refunded'],shipped:['delivered','refunded'],delivered:['refunded']};
-  if(!['super_admin','club_manager'].includes(p.role))return <Screen title="Order fulfillment" back><Empty title="Club manager access required" body="Fulfillment is available only to the order’s club manager."/></Screen>;
-  return <Screen title="Order fulfillment" back><Select label="Order" value={orderId} options={orders.map(x=>({value:x.order_id,label:`${x.order_id} · ${humanize(x.status)}`}))} onChange={id=>{setOrder(id);setTo(undefined);}}/>{order?<><Badge label={humanize(order.status)}/><Row title="Order total" detail={money(order.total_minor)}/><Select label="Next state" value={to} options={(transitions[order.status]||[]).map(value=>({value,label:humanize(value)}))} onChange={setTo}/><Button label="Review order change" disabled={!to||p.connection==='offline'} onPress={()=>setReview(true)}/></>:<Empty title="No manageable orders" body="New orders from your club will appear here after checkout." icon="store"/>}<Sheet title="Confirm order change" open={review} onClose={()=>setReview(false)}><T>{orderId}: {humanize(order?.status||'')} → {humanize(to||'')}</T>{['cancelled','refunded'].includes(to||'')&&<Message title="Refund or cancellation" description="The server checks whether this order can be cancelled or refunded." tone="warning"/>}<Button label="Confirm change" kind={['cancelled','refunded'].includes(to||'')?'danger':'primary'} onPress={()=>{if(order&&to)void p.run({kind:'orderTransition',orderId:order.order_id,to}).then(result=>{if(result.ok){setReview(false);setTo(undefined);}});}}/><Button label="Cancel" kind="quiet" onPress={()=>setReview(false)}/></Sheet></Screen>;
+import { Badge,Button,Empty,humanize,Message,money,Row,Screen,Section,Select,Sheet,T } from '../../components/ui';
+export function OrderManagementScreen() {
+  const p = useApp();
+  const r = useRoute();
+  const requested = (r.params as {
+    orderId?: string;
+  } | undefined)?.orderId;
+  const [id, setId] = useState(requested);
+  const [to, setTo] = useState<string>();
+  const [review, setReview] = useState(false);
+  const order = p.data.orders.find(x => x.order_id === id);
+  const transitions: Record<string, string[]> = { pending: ['paid', 'cancelled'], paid: ['packed', 'cancelled', 'refunded'], packed: ['shipped', 'cancelled', 'refunded'], shipped: ['delivered', 'refunded'], delivered: ['refunded'] };
+  useEffect(() => {
+    if (id)
+      void p.fetchOrder(id);
+  }, [id]);
+  const options = (order ? transitions[order.status] : []) || [];
+  return <Screen title="Order fulfillment" back>
+
+    {!['super_admin', 'club_manager'].includes(p.role) ? <Empty title="Manager access required" body="Fulfillment is available to the order's club manager." icon="store" /> : <>
+
+      <Select label="Order" value={id} options={p.data.orders.map(x => ({ value: x.order_id, label: `${x.order_id} - ${humanize(x.status)}` }))} onChange={value => {
+        setId(value);
+        setTo(undefined);
+      }} />
+
+      {order ? <>
+
+        <Badge label={humanize(order.status)} />
+
+        <Row title="Order total" detail={money(order.total_minor, order.currency)} />
+
+        <Section title="Update fulfillment">
+
+          {options.length ? <Select label="Next state" value={to} options={options.map(value => ({ value, label: humanize(value) }))} onChange={setTo} /> : <T>
+
+            No further transitions are available for this order.
+
+          </T>}
+
+          <Button label="Review order change" disabled={!options.includes(to || '') || p.connection === 'offline'} onPress={() => setReview(true)} />
+
+        </Section>
+
+      </> : <Empty title={p.data.orders.length ? 'Choose an order' : 'No orders available'} body="Select an order above to manage its next fulfillment step." icon="store" />}
+
+      <Sheet title="Confirm order change" open={review} onClose={() => setReview(false)}>
+
+        <Row title="Order" detail={id} />
+
+        <Row title="Change" detail={`${humanize(order?.status || '')} to ${humanize(to || '')}`} />
+
+        {['cancelled', 'refunded'].includes(to || '') && <Message title="Cancellation or refund" description="The server checks whether this action is available for the order." tone="warning" />}
+
+        <Button label="Confirm change" kind={['cancelled', 'refunded'].includes(to || '') ? 'danger' : 'primary'} onPress={() => {
+          if (order && to)
+            void p.run({ kind: 'orderTransition', orderId: order.order_id, to }).then(result => {
+              if (result.ok) {
+                setReview(false);
+                setTo(undefined);
+              }
+            });
+        }} />
+
+        <Button label="Keep editing" kind="quiet" onPress={() => setReview(false)} />
+
+      </Sheet>
+
+    </>}
+
+  </Screen>;
 }

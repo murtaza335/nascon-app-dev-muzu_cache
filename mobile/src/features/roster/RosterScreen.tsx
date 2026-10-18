@@ -1,11 +1,59 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation,useRoute } from '@react-navigation/native';
+import { View } from 'react-native';
 import { useApp } from '../../app/AppContext';
-import { Badge, Button, Card, Empty, humanize, Row, Screen, Section, Select, T } from '../../components/ui';
+import { Badge,Button,Empty,humanize,LeaguePicker,Row,Screen,Section,T,ui } from '../../components/ui';
 import type { AppNavigation } from '../../navigation/routes';
 import { colors as c } from '../../theme/tokens';
 export function RosterScreen() {
-  const p=useApp();const n=useNavigation<AppNavigation>();const route=useRoute();const requested=(route.params as {clubId?:string}|undefined)?.clubId;const club=p.data.clubs.find(x=>x.club_id===(requested||p.data.user?.club_id)) || (p.role==='super_admin'?p.data.clubs[0]:undefined);
-  if(!['club_manager','super_admin'].includes(p.role))return <Screen title="Roster"><Empty title="Club management access" body="Roster actions are available to authorized club managers." icon="roster"/></Screen>;
-  const roster=(club?.roster || []).filter(player=>p.data.registrations?.some(r=>r.player_id===player.player_id&&r.league_id===p.selectedLeague?.league_id&&r.squad_id===player.squad_id));
-  return <Screen title="Your roster" back={route.name==='RosterManagement'} subtitle={club?.name||'Build a stronger team'} stateful skeleton="list"><Select label="Competition" value={p.selectedLeague?.league_id} options={p.data.leagues.map(x=>({value:x.league_id,label:x.name}))} onChange={p.setLeagueId}/><Button label="Add a player" icon="plus" onPress={()=>n.navigate('AddPlayer')}/><Section title="The team">{roster.length?roster.map(player=><Card key={player.player_id}><Row title={player.name} detail={player.position} icon="person" onPress={()=>n.navigate('PlayerProfile',{playerId:player.player_id})}/><Badge label={player.on_loan?'On loan':humanize(player.role||'registered')}/><Button label="Manage registration" kind="secondary" onPress={()=>n.navigate('RosterAction',{playerId:player.player_id})}/></Card>):<Empty title="Great teams start here" body="Your club’s registered players, roles and loan information will appear here." icon="roster"/>}</Section><Section title="Roster changes"><T color={c.secondary}>Transfers, loans and releases keep a visible history. Offline changes remain pending until the server accepts them.</T><Button label="View sync status" kind="quiet" onPress={()=>n.navigate('SyncStatus')}/></Section></Screen>;
+  const p = useApp();
+  const n = useNavigation<AppNavigation>();
+  const route = useRoute();
+  const requested = (route.params as {
+    clubId?: string;
+  } | undefined)?.clubId;
+  const club = p.data.clubs.find(x => x.club_id === (requested || p.data.user?.club_id)) || (p.role === 'super_admin' ? p.data.clubs[0] : undefined);
+  const allowed = p.role === 'super_admin' || p.role === 'club_manager' && club?.club_id === p.data.user?.club_id;
+  const registrations = (p.data.registrations || []).filter(x => x.league_id === p.selectedLeague?.league_id);
+  const roster = (club?.roster || []).filter(x => registrations.some(r => r.player_id === x.player_id && r.squad_id === x.squad_id));
+  return <Screen title="Roster" subtitle={club?.name} back={route.name === 'RosterManagement'}>
+
+    {!allowed ? <Empty title="Manager access required" body="Open the roster of a club you manage." icon="roster" /> : <>
+
+      <LeaguePicker />
+
+      <Button label="Add player" icon="plus" onPress={() => n.navigate('AddPlayer')} />
+
+      <Section title={`${roster.length} registered players`}>
+
+        {roster.length ? roster.map(player => <View key={`${player.player_id}:${player.squad_id}`} style={{ gap: 8, paddingBottom: 12, borderBottomWidth: 1, borderColor: c.divider }}>
+
+          <Row title={player.name} detail={player.position} icon="person" onPress={() => n.navigate('PlayerProfile', { playerId: player.player_id })} />
+
+          <View style={[ui.between, { flexWrap: 'wrap' }]}>
+
+            <Badge label={player.on_loan ? 'On loan' : humanize(player.role || 'Registered')} tone={player.on_loan ? 'info' : 'neutral'} />
+
+            <Button label="Registration" kind="quiet" onPress={() => n.navigate('RosterAction', { playerId: player.player_id })} />
+
+          </View>
+
+        </View>) : <Empty title="No players in this competition" body="Choose another competition or add a player registration." icon="roster" />}
+
+      </Section>
+
+      <Section title="Registration changes">
+
+        <T color={c.secondary}>
+
+          Transfers, loans and releases keep a permanent history. Offline changes remain pending until accepted by the server.
+
+        </T>
+
+        <Button label="View pending work" kind="secondary" onPress={() => n.navigate('SyncStatus')} />
+
+      </Section>
+
+    </>}
+
+  </Screen>;
 }

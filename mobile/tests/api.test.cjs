@@ -55,7 +55,7 @@ test('APP-32/40: release sends null destination and current authenticated identi
   const payload = queuePayload({ kind: 'roster', playerId: 'p', leagueId: 'l', action: 'release', toSquadId: 'ignored', effectiveDate: '2026-10-17', reason: 'Requested' }, { players: [{ player_id: 'p', squad_id: 'sq' }] }, 'request', 'signed-in-user');
   assert.equal(payload.to_squad_id, null); assert.equal(payload.requested_by, 'signed-in-user'); assert.equal(payload.from_squad_id, 'sq'); assert.equal(payload.league_id, 'l');
 });
-test('MOB-01: role tabs stay within five destinations', () => { for (const role of ['viewer', 'player', 'club_manager', 'league_organizer', 'super_admin']) { assert.equal(tabsForRole(role)[0], 'Fixtures'); assert.ok(tabsForRole(role).length <= 5); } });
+test('MOB-01: role tabs stay within five destinations', () => { for (const role of ['viewer', 'player', 'club_manager', 'league_organizer', 'super_admin']) { assert.equal(tabsForRole(role)[0], 'Home'); assert.ok(tabsForRole(role).length <= 5); } });
 test('NFR-5: persisted scope separates server, user and tenant; token stays in Keychain', async () => {
   let stored; const keychain = { setGenericPassword: async (_, value) => { stored = value; }, getGenericPassword: async () => stored ? { password: stored } : false, resetGenericPassword: async () => { stored = null; } };
   const { sessionStorage, sessionScope } = load('services/auth/session.ts', { 'react-native-keychain': keychain });
@@ -96,8 +96,85 @@ test('NFR-ACC-01: both theme palettes retain readable body and status text', () 
   const { darkColors, lightColors } = load('theme/tokens.ts', { 'react-native': { Platform: { select: value => value.android } } });
   const luminance = hex => { const parts = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(x => x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4); return parts[0] * 0.2126 + parts[1] * 0.7152 + parts[2] * 0.0722; };
   for (const palette of [darkColors, lightColors]) {
-    for (const [fg, bg] of [['text', 'background'], ['secondary', 'surface'], ['muted', 'olive'], ['onAccent', 'accent'], ['success', 'successBg'], ['warning', 'warningBg'], ['error', 'errorBg'], ['info', 'infoBg']]) {
+    for (const [fg, bg] of [['text', 'background'], ['secondary', 'surface'], ['muted', 'olive'], ['muted', 'raised'], ['onAccent', 'accent'], ['success', 'successBg'], ['warning', 'warningBg'], ['error', 'errorBg'], ['info', 'infoBg'], ['onDarkSurface', 'darkSurface'], ['darkMuted', 'darkSurface'], ['onDarkSurface', 'darkRaised'], ['darkMuted', 'darkRaised']]) {
       const a = luminance(palette[fg]), b = luminance(palette[bg]); assert.ok((Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05) >= 4.5, `${fg} on ${bg}`);
     }
   }
+});
+
+
+test('APP-51/53: detail reads encode IDs, preserve server totals and normalize missing variants', async () => {
+  const { loadProduct, loadOrder } = load('services/api/models.ts');
+  const calls = [];
+  const client = { request: async route => {
+    calls.push(route);
+    return route.startsWith('/store/products/')
+      ? { product_id: 'product / one', name: 'Club kit' }
+      : { order_id: 'order / one', total_minor: 49900, receipt: { payload: { paid_at: '2026-10-18T01:00:00Z' } } };
+  } };
+  const product = await loadProduct(client, 'product / one');
+  const order = await loadOrder(client, 'order / one');
+  assert.deepEqual(calls, ['/store/products/product%20%2F%20one', '/store/orders/order%20%2F%20one']);
+  assert.deepEqual(product.variants, []);
+  assert.equal(order.total_minor, 49900);
+  assert.equal(order.paid_at, '2026-10-18T01:00:00Z');
+  await assert.rejects(loadProduct({ request: async () => { throw new Error('Unavailable'); } }, 'p'), /Unavailable/);
+});
+
+test('MOB-12: queued versions distinguish unknown history from a real empty history', () => {
+  const { queueBaseVersion } = load('services/api/commands.ts');
+  const roster = { kind: 'roster', playerId: 'p' };
+  assert.throws(() => queueBaseVersion(roster, { history: {} }), /history/);
+  assert.equal(queueBaseVersion(roster, { history: { p: [] } }), 0);
+  assert.equal(queueBaseVersion(roster, { history: { p: [{}, {}, {}] } }), 3);
+  assert.equal(queueBaseVersion({ kind: 'score', matchId: 'm' }, { fixtures: [{ match_id: 'm', version: 7 }] }), 7);
+  assert.throws(() => queueBaseVersion({ kind: 'score', matchId: 'absent' }, { fixtures: [] }), /match/);
+});
+
+test('MOB-10: backend default, saved development addresses and public override stay configurable', () => {
+  const prior = process.env.EXPO_PUBLIC_API_URL;
+  try {
+    delete process.env.EXPO_PUBLIC_API_URL;
+    const config = load('config/env.ts');
+    assert.equal(config.API_BASE_URL, 'http://10.195.242.35:8080');
+    for (const url of ['http://10.0.2.2:8080', 'http://localhost:8080/', 'http://127.0.0.1:8080']) {
+      assert.equal(config.restoreServerUrl(url), config.API_BASE_URL);
+    }
+    assert.equal(config.restoreServerUrl('https://custom.test'), 'https://custom.test');
+    assert.equal(config.restoreServerUrl(config.API_BASE_URL), config.API_BASE_URL);
+    process.env.EXPO_PUBLIC_API_URL = 'http://192.168.1.8:8080/';
+    assert.equal(load('config/env.ts').API_BASE_URL, 'http://192.168.1.8:8080');
+    assert.equal(load('config/env.ts').restoreServerUrl('http://localhost:8080'), 'http://192.168.1.8:8080');
+  } finally {
+    if (prior === undefined) delete process.env.EXPO_PUBLIC_API_URL;
+    else process.env.EXPO_PUBLIC_API_URL = prior;
+  }
+});
+
+
+test('MOB-02: fixture discovery combines team, venue, status and team scope filters', () => {
+  const { filterFixtures, groupFixtures } = load('features/fixtures/selectors.ts');
+  const matches = [
+    { match_id: 'late', home_team_id: 'a', away_team_id: 'b', home_name: 'North Club', status: 'upcoming', venue: 'Main Court', scheduled_at: '2026-10-19T10:00:00Z' },
+    { match_id: 'live', home_team_id: 'c', away_team_id: 'a', home_name: 'West Club', status: 'in_progress', venue: 'Main Court', scheduled_at: '2026-10-18T10:00:00Z' },
+    { match_id: 'undated', home_team_id: 'x', away_team_id: 'y', status: 'upcoming', scheduled_at: null }
+  ];
+  assert.deepEqual(filterFixtures(matches, ' MAIN ', 'in_progress', 'a').map(x => x.match_id), ['live']);
+  assert.deepEqual(filterFixtures(matches, 'North', 'all').map(x => x.match_id), ['late']);
+  assert.equal(filterFixtures(matches, 'North', 'completed').length, 0);
+  const sorted = filterFixtures(matches, '', 'all');
+  assert.deepEqual(sorted.map(x => x.match_id), ['live', 'late', 'undated']);
+  assert.equal(groupFixtures(sorted).at(-1).label, 'Date to be confirmed');
+});
+
+test('MOB-01: home prioritizes owned live matches without inventing a match', () => {
+  const { dashboardMatches } = load('features/home/selectors.ts');
+  const data = { user: { club_id: 'club', league_ids: ['owned'] }, squads: [{ club_id: 'club', squad_id: 'our-team' }], fixtures: [
+    { match_id: 'foreign', league_id: 'other', home_team_id: 'foreign-team', away_team_id: 'away', status: 'in_progress' },
+    { match_id: 'next', league_id: 'owned', home_team_id: 'our-team', away_team_id: 'away', status: 'upcoming', scheduled_at: '2026-10-20T10:00:00Z' },
+    { match_id: 'live', league_id: 'owned', home_team_id: 'our-team', away_team_id: 'away', status: 'in_progress' },
+    { match_id: 'done', league_id: 'owned', status: 'completed' }
+  ] };
+  for (const role of ['club_manager', 'player', 'league_organizer']) assert.deepEqual(dashboardMatches(data, role).map(x => x.match_id), ['live', 'next']);
+  assert.deepEqual(dashboardMatches({ ...data, fixtures: [] }, 'viewer'), []);
 });

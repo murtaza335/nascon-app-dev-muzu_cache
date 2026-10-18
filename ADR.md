@@ -146,7 +146,7 @@ requirement IDs from [`REQUIREMENTS.md`](REQUIREMENTS.md). The structural summar
 ## ADR-017: Mobile: React Native (Android), SQLite cache + outbox, Keychain, NetInfo
 - **Status:** Proposed · **Date:** 2026-10-17
 - **Context:** One platform suffices; the team's Gradle cache is warmed for React Native; §8.4 requires SQLite/Room/Hive persistence, a persistent offline queue in the §5.14 format, an always-visible connectivity indicator, and Keystore token storage. The campus network may block Google Maven.
-- **Decision:** Keep the existing Expo-prebuild React Native Android scaffold in `mobile/` (no nested git). Current lockfile versions: Expo 54.0.37, expo-status-bar 3.0.9, React Native 0.81.5, React 19.1.0, TypeScript 5.9.3 and @types/react 19.1.17. SDK 54 was explicitly selected by the user to reuse the existing Gradle 8.14.3 / Microsoft JDK 17 setup; it is not a competition version constraint. A full APK build still requires verification. Generated native directories are ignored; tracked Expo configuration/scripts must reproduce native changes. Feature screens live under `src/features/<feature>/`, infrastructure under `src/services/{api,auth,storage,sync,realtime}/` (ARCHITECTURE §11). Persistence: SQLite (`@op-engineering/op-sqlite`, fallback `react-native-sqlite-storage`) with tables `kv`, `cache_entries`, `outbox`, `sync_results`. Token: `react-native-keychain`. Connectivity: `@react-native-community/netinfo`. Navigation: React Navigation. One API client with a configurable base URL (Settings; default `http://10.0.2.2:8080`). Release APK signed with the debug keystore → `mobile/release/app-release.apk`; `usesCleartextTraffic=true`.
+- **Decision:** Keep the existing Expo-prebuild React Native Android scaffold in `mobile/` (no nested git). Current lockfile versions: Expo 54.0.37, expo-status-bar 3.0.9, React Native 0.81.5, React 19.1.0, TypeScript 5.9.3 and @types/react 19.1.17. SDK 54 was explicitly selected by the user to reuse the existing Gradle 8.14.3 / Microsoft JDK 17 setup; it is not a competition version constraint. A full APK build still requires verification. Generated native directories are ignored; tracked Expo configuration/scripts must reproduce native changes. Feature screens live under `src/features/<feature>/`, infrastructure under `src/services/{api,auth,storage,sync,realtime}/` (ARCHITECTURE §11). Persistence: SQLite (`@op-engineering/op-sqlite`, fallback `react-native-sqlite-storage`) with tables `kv`, `cache_entries`, `outbox`, `sync_results`. Token: `react-native-keychain`. Connectivity: `@react-native-community/netinfo`. Navigation: React Navigation. One API client with a configurable base URL (Settings; current user-selected default `http://10.195.242.35:8080`). Release APK signed with the debug keystore → `mobile/release/app-release.apk`; `usesCleartextTraffic=true`.
 - **Alternatives:** AsyncStorage (not SQLite, so it fails the §8.4 wording); Flutter/Hive (no warmed cache); Kotlin/Room (slower UI iteration for this team).
 - **Consequences:** (+) meets §8 exactly; offline-first by construction. (−) Native modules must build offline; validate the APK build by 13:30 PKT.
 - **Implementation status (2026-10-17):** The 21-screen UI preview and React Navigation are implemented. Installed navigation versions: native 7.5.1, native-stack 7.21.0, bottom-tabs 7.21.0, react-native-screens 4.16.0, safe-area-context 5.6.2. Persistence, secure session, connectivity detection, sync and release delivery remain Proposed/unimplemented. TypeScript and Hermes export pass; native build/layout verification remains open. See `mobile/SCREEN-PLAN.md` and ADR-020.
@@ -190,3 +190,50 @@ requirement IDs from [`REQUIREMENTS.md`](REQUIREMENTS.md). The structural summar
 - **UI:** Neutral surfaces, muted olive selection, restrained lime primary actions, runtime semantic colors and sign-out from Account/Settings.
 - **Consequences:** No dependency/infrastructure changes. Fresh Android build required. ADR-020/021 are historical; native acceptance remains pending.
 - **Requirements:** MOB-01-12, APP-03 and existing APP contracts, NFR-4/5/ACC-01, RT-01.
+
+## ADR-023: Preserve original source and replace the mobile presentation
+- **Status:** Implemented; complete native/backend acceptance pending (2026-10-18).
+- **Context:** User rejected the current frontend, requested preservation as src1,
+  a fresh production-style src with backend integration, and no commits or pushes.
+- **Decision:** Preserve `mobile/src1` unmodified. Ship a self-contained `mobile/src`
+  with 21 core screens plus existing management routes, reusable primitives and
+  MatchScore. User approved light mineral surfaces, forest accents and dark support.
+  Keep the existing approved React Native/navigation/Keychain/SQLite infrastructure.
+  Refresh product/order details directly and require known roster history versions.
+  Remove forced LAN-address migration; retain explicit server configuration.
+- **Consequences:** Original code remains available for comparison. Backup is excluded
+  from compilation. No new dependencies, backend endpoints, services or defaults.
+  Source/service tests do not establish live backend or native accessibility acceptance.
+- **Requirements:** MOB-01-12, APP-01/02/03/10/11/13/14/15/16/30-34/40/50-55,
+  RT-01, NFR-4/5/ACC-01. No unsupported P2 endpoints added.
+
+## ADR-024: Replace screen composition and task navigation
+- **Status:** Implemented; broader live backend/native acceptance remains pending.
+- **Date:** 2026-10-18.
+- **Context:** User rejected the first replacement as too similar, requesting a
+  more comprehensive, concentrated and user-friendly component-based application.
+- **Decision:** Add role-aware Home with five stable core tabs; move scoped
+  operational entry points to Home and authorized details. Replace repeated list
+  compositions with discovery, expandable standings, shopping grids, club/match
+  content tabs and staged review workflows. Split shared UI into focused modules
+  and extract feature-level components. Preserve backend/runtime boundaries and src1.
+- **Consequences:** More content is progressively disclosed rather than stacked in
+  generic long forms. Every existing primary journey remains reachable; new Home
+  is presentation only, with no fabricated metrics or API endpoints. Requirements
+  section 9 was updated before navigation changes. No dependencies/commits/pushes.
+- **Requirements:** MOB-01-12, NFR-ACC-01 and their existing APP/RT contracts.
+
+## ADR-025: Sportron brand, concise copy and complementary dark surfaces
+- **Status:** Implemented; native visual scope recorded separately.
+- **Date:** 2026-10-18.
+- **Context:** User named the app Sportron and requested less screen text, tighter
+  heading/content grouping and dark contrast within the light interface.
+- **Decision:** Update display name/Expo slug, splash/login/fallback branding;
+  preserve Android application ID, native bridge, database and Keychain identifiers.
+  Use semantic darkSurface/onDarkSurface/darkMuted roles for appbars and focused
+  score/club/work panels. Main lists/forms remain light; dark mode remains available.
+  Tighten related heading/content spacing and remove repeated/promotional copy.
+- **Consequences:** Existing installations retain data and session scope. Native
+  launcher rename requires the rebuilt development APK. No backend contracts,
+  functionality, dependencies, ports, services or open-question defaults change.
+- **Requirements:** MOB-01-10, NFR-ACC-01, FR-2.1-02.

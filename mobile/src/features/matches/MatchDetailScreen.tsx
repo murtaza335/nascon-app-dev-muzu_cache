@@ -1,27 +1,81 @@
-import { useEffect, useState } from 'react';
+import { RouteProp,useNavigation,useRoute } from '@react-navigation/native';
+import { useEffect,useState } from 'react';
 import { View } from 'react-native';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useApp } from '../../app/AppContext';
-import { Avatar, Badge, Button, Card, dateLabel, Empty, humanize, Message, Screen, Section, Select, Sheet, T, ui } from '../../components/ui';
-import type { AppNavigation, StackParams } from '../../navigation/routes';
+import { MatchScore } from '../../components/MatchScore';
+import { Button,Chip,Empty,Message,Row,Screen,Section,Select,Sheet,T,dateLabel,money,ui } from '../../components/ui';
+import type { AppNavigation,StackParams } from '../../navigation/routes';
 import { colors as c } from '../../theme/tokens';
+import { ProductArt } from '../store/components/ProductMedia';
+import { MatchTimeline } from './components/MatchTimeline';
 export function MatchDetailScreen() {
-  const p = useApp(); const n = useNavigation<AppNavigation>(); const route = useRoute<RouteProp<StackParams, 'MatchDetail'>>();
-  const match = p.data.fixtures.find(x => x.match_id === route.params?.matchId) ?? (!route.params?.matchId ? p.data.fixtures.find(x => x.status === 'in_progress') ?? p.data.fixtures[0] : undefined);
-  const [pinOpen, setPinOpen] = useState(false); const [productId, setProductId] = useState<string>();
-  const canScore = p.role === 'super_admin' || (p.role === 'league_organizer' && !!match && !!p.data.user?.league_ids?.includes(match.league_id));
-  const events = [...(match?.events || [])].sort((a,b) => a.sequence - b.sequence);
-  useEffect(()=>{if(match?.match_id)return p.watchMatch(match.match_id);},[match?.match_id]);
-  if(!match) return <Screen title="Match centre" back skeleton="detail"><Empty title="Match unavailable" body="Return to fixtures and refresh the schedule."/></Screen>;
-  return <Screen title="Match centre" subtitle={p.selectedLeague?.name} back stateful skeleton="detail">
-    <Card style={{ backgroundColor: c.olive, paddingVertical: 24 }}><View style={[ui.between, { flexWrap: 'wrap' }]}><Badge label={match ? humanize(match.status) : 'Match unavailable'} tone={match?.status === 'in_progress' ? 'success' : 'neutral'} /><T variant="caption" color={c.muted}>{match ? 'Confirmed score' : 'Awaiting match data'}</T></View>
-      <View style={[ui.row, { alignItems: 'flex-start', gap: 16 }]}>{[{ name: match?.home_name || match?.home_team_id || 'Home team', score: match?.score.home, extra: match?.home_extra }, { name: match?.away_name || match?.away_team_id || 'Away team', score: match?.score.away, extra: match?.away_extra }].map((team, i) => <View key={i} style={{ flex: 1, alignItems: 'center', gap: 12 }}><Avatar name={team.name} size={52} /><T variant="strong" style={{ textAlign: 'center' }}>{team.name}</T><T variant="score" accessibilityLabel={`${team.name}, score ${team.score ?? 'unavailable'}`}>{team.score ?? '—'}</T>{!!team.extra && <T variant="caption" color={c.secondary}>{team.extra}</T>}</View>)}</View>
-      <View style={ui.divider} /><T variant="caption" color={c.secondary} style={{ textAlign: 'center' }}>{dateLabel(match?.scheduled_at)}{match?.venue ? ` · ${match.venue}` : ''}</T>
-    </Card>
-    {p.connection !== 'online' && <Message title={p.connection === 'offline' ? 'You’re viewing saved information' : 'Refreshing match information'} description="The confirmed score updates when the latest match information is available." tone="warning" />}
-    {canScore && <View style={{ gap: 8 }}><Button label="Record event" icon="plus" onPress={() => n.navigate('ScoringEntry', { matchId: match?.match_id })} /><Button label="Manage pinned product" kind="quiet" onPress={() => setPinOpen(true)} /></View>}
-    <Section title="Match timeline">{events.length ? <View style={{ gap: 0 }}>{events.map((event, i) => <View key={event.event_id} style={{ flexDirection: 'row', gap: 16 }}><View style={{ width: 28, alignItems: 'center' }}><View style={{ height: 10, width: 10, backgroundColor: event.compensated ? c.muted : c.accent, borderRadius: 5, marginTop: 7 }} />{i < events.length - 1 && <View style={{ width: 1, backgroundColor: c.divider, flex: 1, marginVertical: 6 }} />}</View><View style={{ flex: 1, paddingBottom: 24, gap: 8 }}><T variant="caption" color={c.muted}>Event {event.sequence}</T><T variant="strong" style={event.compensated ? { textDecorationLine: 'line-through', color: c.secondary } : undefined}>{event.label || humanize(event.type)}</T>{event.compensated && <Badge label="Corrected" tone="info" />}{typeof event.payload.reason === 'string' && <T color={c.secondary}>{event.payload.reason}</T>}{canScore && !event.compensated && ['score','discipline','tiebreak_winner'].includes(event.type) && <Button label="Correct event" kind="quiet" onPress={() => n.navigate('Compensation', { matchId: match?.match_id, eventId: event.event_id })} style={{ alignSelf: 'flex-start' }} />}</View></View>)}</View> : <Empty title="Every moment, recorded" body="The match timeline will appear here. Corrections remain visible alongside the original events." icon="clock" />}</Section>
-    <Section title="From the club">{match?.pinned_product ? <Card><T variant="section">{match.pinned_product.name}</T><T color={c.secondary}>Selected by the match organizer</T><Button label="View product" kind="secondary" onPress={() => n.navigate('ProductDetail', { productId: match.pinned_product!.product_id })} /></Card> : <Card><T variant="strong">No product featured</T><T color={c.secondary}>Club merchandise selected for this match will appear here.</T></Card>}</Section>
-    <Sheet title="Feature a product" open={pinOpen} onClose={() => setPinOpen(false)}><Select label="Product" value={productId} options={p.data.products.map(x => ({ value: x.product_id, label: x.name }))} onChange={setProductId} /><Button label="Pin product" disabled={!productId || p.connection === 'offline'} onPress={()=>{if(match)void p.run({kind:'pin',matchId:match.match_id,productId}).then(result=>{if(result.ok)setPinOpen(false);});}} /><Button label="Remove current pin" kind="quiet" disabled={!match?.pinned_product||p.connection==='offline'} onPress={()=>{if(match)void p.run({kind:'pin',matchId:match.match_id}).then(result=>{if(result.ok)setPinOpen(false);});}} /></Sheet>
+  const p = useApp();
+  const n = useNavigation<AppNavigation>();
+  const r = useRoute<RouteProp<StackParams, 'MatchDetail'>>();
+  const match = p.data.fixtures.find(x => x.match_id === r.params?.matchId);
+  const [tab, setTab] = useState('Overview');
+  const [pin, setPin] = useState(false);
+  const [product, setProduct] = useState<string>();
+  const allowed = !!match && (p.role === 'super_admin' || p.role === 'league_organizer' && !!p.data.user?.league_ids?.includes(match.league_id));
+  useEffect(() => {
+    if (r.params?.matchId)
+      return p.watchMatch(r.params.matchId);
+  }, [r.params?.matchId]);
+  return <Screen title="Match centre" back>
+    {!match ? <Empty title="Match unavailable" body="Return to fixtures and refresh the schedule." /> : <>
+
+      <View style={ui.wrap}>
+        {['Overview', 'Timeline'].map(value => <Chip key={value} label={value === 'Timeline' ? `Timeline (${match.events?.length || 0})` : value} selected={tab === value} onPress={() => setTab(value)} />)}
+      </View>
+
+      {tab === 'Overview' ? <>
+        <MatchScore match={match} />
+        <Section title="Match information">
+          <Row title="Competition" detail={p.data.leagues.find(x => x.league_id === match.league_id)?.name || match.league_id} />
+          <Row title="Venue" detail={match.venue || 'To be confirmed'} />
+          <Row title="Scheduled" detail={dateLabel(match.scheduled_at)} />
+        </Section>
+
+        <Section title="Featured by the club">
+          {match.pinned_product ? <View style={{ gap: 12 }}>
+            <ProductArt product={match.pinned_product} />
+            <T variant="section">
+              {match.pinned_product.name}
+            </T>
+            {match.pinned_product.variants.length > 0 && <T variant="strong" color={c.accent}>{`From ${(money(Math.min(...match.pinned_product.variants.map(v => v.price_minor))))}`}</T>}
+            <Button label="Shop this product" onPress={() => n.navigate('ProductDetail', { productId: match.pinned_product!.product_id })} />
+          </View> : <T color={c.secondary}>
+            No product featured for this match.
+          </T>}
+        </Section>
+        <Button label="Open match timeline" kind="secondary" onPress={() => setTab('Timeline')} />
+      </> : <>
+        <View style={{ backgroundColor: c.olive, padding: 16, borderRadius: 12, gap: 8 }}>
+          <T variant="strong">{`${(match.home_name || match.home_team_id)} / ${(match.away_name || match.away_team_id)}`}</T>
+          <T variant="heading">{`${(match.score.home ?? '-')} : ${(match.score.away ?? '-')}`}</T>
+        </View>
+        <MatchTimeline match={match} editable={allowed} />
+      </>}
+
+      {p.connection === 'offline' && <Message title="Saved match information" description="The confirmed score refreshes when you reconnect." tone="warning" />}
+
+      {allowed && <Section title="Match tools">
+        <Button label="Record match event" icon="score" onPress={() => n.navigate('ScoringEntry', { matchId: match.match_id })} />
+        <Button label="Manage featured product" kind="secondary" onPress={() => setPin(true)} />
+      </Section>}
+
+      <Sheet title="Feature a product" open={pin} onClose={() => setPin(false)}>
+        <Select label="Product" value={product} options={p.data.products.map(x => ({ value: x.product_id, label: x.name }))} onChange={setProduct} />
+        <Button label="Pin product" disabled={!product || p.connection === 'offline'} onPress={() => void p.run({ kind: 'pin', matchId: match.match_id, productId: product }).then(result => {
+          if (result.ok)
+            setPin(false);
+        })} />
+        <Button label="Remove current pin" kind="secondary" disabled={!match.pinned_product || p.connection === 'offline'} onPress={() => void p.run({ kind: 'pin', matchId: match.match_id }).then(result => {
+          if (result.ok)
+            setPin(false);
+        })} />
+      </Sheet>
+
+    </>}
   </Screen>;
 }

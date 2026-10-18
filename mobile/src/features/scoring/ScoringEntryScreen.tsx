@@ -1,22 +1,93 @@
-import { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation,useRoute } from '@react-navigation/native';
+import { useEffect,useState } from 'react';
 import { useApp } from '../../app/AppContext';
-import { Avatar, Badge, Button, Card, Empty, Message, Row, Screen, Section, Select, Sheet, T, ui } from '../../components/ui';
+import { FormProgress } from '../../components/forms/FormProgress';
+import { MatchScore } from '../../components/MatchScore';
+import { Button,Empty,Message,Row,Screen,Section,Select,Sheet,T } from '../../components/ui';
 import type { AppNavigation } from '../../navigation/routes';
-import { colors as c } from '../../theme/tokens';
 export function ScoringEntryScreen() {
-  const p=useApp();const n=useNavigation<AppNavigation>();const route=useRoute();const params=route.params as {matchId?:string}|undefined;
-  const matches=p.data.fixtures.filter(x=>p.role==='super_admin'||p.data.user?.league_ids?.includes(x.league_id));
-  const [matchId,setMatchId]=useState(params?.matchId || matches.find(x=>x.status==='in_progress')?.match_id);const match=matches.find(x=>x.match_id===matchId);
-  const [team,setTeam]=useState<string>();const [event,setEvent]=useState<string>();const [review,setReview]=useState<'score'|'start'|'end'|null>(null);
-  useEffect(()=>{if(match?.match_id)return p.watchMatch(match.match_id);},[match?.match_id]);
-  if(!['league_organizer','super_admin'].includes(p.role))return <Screen title="Scoring" back={route.name==='ScoringEntry'}><Empty title="Organizer access required" body="Scoring actions are available for the leagues you organize." icon="score"/></Screen>;
-  return <Screen title="Scoring"  back={route.name==='ScoringEntry'} stateful><Select label="Match" value={matchId} options={matches.map(x=>({value:x.match_id,label:`${x.home_name||x.home_team_id} vs ${x.away_name||x.away_team_id}`}))} onChange={id=>{setMatchId(id);setTeam(undefined);setEvent(undefined);}}/>
-    <Card style={{backgroundColor:c.olive}}><View style={ui.between}><T variant="strong" style={ui.grow}>Confirmed score</T><Badge label={match?match.status.replace(/_/g,' '):'No match selected'}/></View><View style={[ui.row,{alignItems:'flex-start'}]}>{[{name:match?.home_name||match?.home_team_id||'Home team',score:match?.score.home},{name:match?.away_name||match?.away_team_id||'Away team',score:match?.score.away}].map((x,i)=><View key={i} style={{flex:1,alignItems:'center',gap:12}}><Avatar name={x.name}/><T variant="strong" style={{textAlign:'center'}}>{x.name}</T><T variant="score">{x.score??'—'}</T></View>)}</View></Card>
-    <Section title="Score event"><Select label="Team" value={team} options={match?[{value:match.home_team_id,label:match.home_name||match.home_team_id},{value:match.away_team_id,label:match.away_name||match.away_team_id}]:[]} onChange={setTeam}/><Select label="Event" value={event} options={p.eventsFor(match?.match_id)} onChange={setEvent}/><T variant="caption" color={c.muted}>Available events come from the selected sport’s configuration.</T><Button label="Review event" disabled={!match||!team||!event||match.status!=='in_progress'} onPress={()=>setReview('score')}/></Section>
-    {p.connection==='offline'&&<Message title="This action will need syncing" description="Confirming saves this action to the persistent pending queue. The confirmed score updates only after sync accepts it." tone="warning"/>}
-    <Section title="Match controls"><Button label="Start match" kind="secondary" disabled={!match||match.status!=='upcoming'} onPress={()=>setReview('start')}/><Button label="End match" kind="secondary" disabled={!match||match.status!=='in_progress'} onPress={()=>setReview('end')}/><Button label="Correct a recorded event" kind="quiet" disabled={!match} onPress={()=>n.navigate('Compensation',{matchId})}/></Section>
-    <Sheet title={review==='score'?'Review score event':review==='start'?'Start this match?':'End this match?'} open={!!review} onClose={()=>setReview(null)}><Row title="Match" detail={match?`${match.home_name||match.home_team_id} vs ${match.away_name||match.away_team_id}`:undefined}/>{review==='score'&&<><Row title="Team" detail={team===match?.home_team_id?match?.home_name||team:match?.away_name||team}/><Row title="Event" detail={p.eventsFor(match?.match_id).find(x=>x.value===event)?.label}/></>}<T color={c.secondary}>Accepted match events become part of the permanent timeline. Corrections are recorded as new events.</T><Button label={review==='score'?'Confirm event':review==='start'?'Confirm start':'Confirm end'} onPress={()=>{if(match&&review)void p.run({kind:'score',matchId:match.match_id,eventType:review==='score'?'score':review==='start'?'match_start':'match_end',teamId:team,scoringEvent:event}).then(result=>{if(result.ok){setReview(null);if(result.queued)n.navigate('SyncStatus');else n.navigate('MatchDetail',{matchId:match.match_id});}});}}/><Button label="Keep editing" kind="quiet" onPress={()=>setReview(null)}/></Sheet>
+  const p = useApp();
+  const n = useNavigation<AppNavigation>();
+  const r = useRoute();
+  const requested = (r.params as {
+    matchId?: string;
+  } | undefined)?.matchId;
+  const [step, setStep] = useState(0);
+  const [id, setId] = useState(requested);
+  const [team, setTeam] = useState<string>();
+  const [event, setEvent] = useState<string>();
+  const [control, setControl] = useState<'match_start' | 'match_end' | null>(null);
+  const matches = p.data.fixtures.filter(x => p.role === 'super_admin' || p.data.user?.league_ids?.includes(x.league_id));
+  const match = matches.find(x => x.match_id === id);
+  const choices = match ? p.eventsFor(match.match_id) : [];
+  useEffect(() => {
+    if (id)
+      return p.watchMatch(id);
+  }, [id]);
+  async function confirm(eventType: 'score' | 'match_start' | 'match_end') {
+    if (!match)
+      return;
+    const result = await p.run({ kind: 'score', matchId: match.match_id, eventType, teamId: team, scoringEvent: event });
+    if (result.ok) {
+      setControl(null);
+      if (result.queued)
+        n.navigate('SyncStatus');
+      else
+        n.navigate('MatchDetail', { matchId: match.match_id });
+    }
+  }
+  return <Screen title="Record match event" back>
+    {!['super_admin', 'league_organizer'].includes(p.role) ? <Empty title="Organizer access required" body="You can score matches only in competitions you organize." icon="score" /> : <>
+
+      <FormProgress labels={['Choose match', 'Choose event', 'Review event']} step={step} />
+
+      {step === 0 && <>
+        <Select label="Match" value={id} options={matches.map(x => ({ value: x.match_id, label: `${x.home_name || x.home_team_id} vs ${x.away_name || x.away_team_id}` }))} onChange={value => {
+          setId(value);
+          setTeam(undefined);
+          setEvent(undefined);
+        }} />
+        {match ? <>
+          <MatchScore match={match} />
+          <Button label="Record a score event" disabled={match.status !== 'in_progress'} onPress={() => setStep(1)} />
+          <Section title="Match controls">
+            <Button label={match.status === 'upcoming' ? 'Start this match' : 'End this match'} kind="secondary" disabled={!['upcoming', 'in_progress'].includes(match.status)} onPress={() => setControl(match.status === 'upcoming' ? 'match_start' : 'match_end')} />
+            <Button label="View timeline and corrections" kind="quiet" onPress={() => n.navigate('MatchDetail', { matchId: match.match_id })} />
+            <Button label="Correct an event" kind="quiet" onPress={() => n.navigate('Compensation', { matchId: match.match_id })} />
+          </Section>
+        </> : <Empty title="Choose your match" body="Select a match above to record events or manage its lifecycle." icon="score" />}
+      </>}
+
+      {step === 1 && match && <Section title="What happened?">
+        <T>{`${(match.home_name || match.home_team_id)} vs ${(match.away_name || match.away_team_id)}`}</T>
+        <Select label="Team" value={team} options={[{ value: match.home_team_id, label: match.home_name || match.home_team_id }, { value: match.away_team_id, label: match.away_name || match.away_team_id }]} onChange={setTeam} />
+        <Select label="Event" value={event} options={choices} onChange={setEvent} />
+        <Button label="Review event" disabled={!team || !event} onPress={() => setStep(2)} />
+      </Section>}
+
+      {step === 2 && <Section title="Confirm the moment">
+        <Row title="Match" detail={match ? `${match.home_name || match.home_team_id} vs ${match.away_name || match.away_team_id}` : undefined} />
+        <Row title="Team" detail={team === match?.home_team_id ? match?.home_name || team : match?.away_name || team} />
+        <Row title="Event" detail={choices.find(x => x.value === event)?.label} />
+        <Message title="A permanent match record" description="Accepted events remain in the timeline. Corrections are recorded as new events." />
+        <Button label="Confirm score event" onPress={() => void confirm('score')} />
+      </Section>}
+
+      {step > 0 && <Button label="Back to previous step" kind="quiet" onPress={() => setStep(step - 1)} />}
+
+      {p.connection === 'offline' && <Message title="Offline recording" description="Your action stays pending until the server accepts it." tone="warning" />}
+
+      <Sheet title={control === 'match_start' ? 'Start this match?' : 'End this match?'} open={!!control} onClose={() => setControl(null)}>
+        <T>
+          This appends a permanent lifecycle event to the match timeline.
+        </T>
+        <Button label={control === 'match_start' ? 'Confirm start' : 'Confirm end'} onPress={() => {
+          if (control)
+            void confirm(control);
+        }} />
+        <Button label="Cancel" kind="quiet" onPress={() => setControl(null)} />
+      </Sheet>
+
+    </>}
   </Screen>;
 }

@@ -3,7 +3,7 @@
 > Mock data/engine, Screen Studio and unsupported P2 controls are removed.
 > Native acceptance remains pending; see ADR-022 and mobile/README.md.
 
-# NaSCon Sports
+# Sportron
 
 <!-- impeccable:product-schema 1 -->
 
@@ -104,8 +104,9 @@ framework or runtime service as a design side effect.
 
 ## Brand Commitments
 
-The user confirmed **NaSCon Sports** as the current app name for this scope.
-Final branding is undecided. Tenants supply their own name, logo and colors;
+The user named the app **Sportron** on 2026-10-18. This supersedes the earlier
+NaSCon Sports display name. The competition/project identity and backend IDs stay
+unchanged. Tenants supply their own name, logo and colors;
 that identity must appear after login while preserving readable contrast.
 
 Use plain-language status, confirmation and error copy, as required by the
@@ -167,3 +168,9 @@ been confirmed for this scope.
 - APK build, secure storage/persistence integration, backend availability and
   native behavior must be verified later. Documented coverage is not passing
   implementation evidence.
+
+### Sportron presentation refinement (2026-10-18)
+The user requests concise screen copy, close grouping of headings and related
+content, and a light interface complemented by deliberate dark surfaces. Keep
+existing dark mode. Preserve labels, recovery, offline state and confirmation
+consequences; remove repeated instructions and promotional filler.

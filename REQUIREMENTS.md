@@ -681,11 +681,11 @@ No update or delete of sports, events or audit entries. No deletion of leagues, 
 | MOB-07 | Roster management (Club Manager) | Add / transfer / loan / release a player, with confirmation before risky actions | APP-31/32 |
 | MOB-08 | Scoring entry (League Organizer) | Append a score event and a compensating event | APP-15 |
 | MOB-09 | Sync status | An always-visible online / offline / syncing indicator and the pending-action queue | APP-40 |
-| MOB-10 | Settings | Server base URL (default `http://10.0.2.2:8080` for the emulator; editable to the laptop's LAN IP), logout | §8.1 |
+| MOB-10 | Settings | Server base URL (default `http://10.195.242.35:8080`; editable in Settings). Saved localhost/emulator addresses migrate to the configured default at startup; custom addresses are preserved. Logout | §8.1 |
 | MOB-11 | Offline cache | Fixtures, standings and club profiles cached in **SQLite**; cached screens open offline with an "Offline" indicator | NFR-4 |
 | MOB-12 | Offline queue | Scoring and roster actions are queued persistently in SQLite in the exact §5.14 action format, survive a force-close, appear as "pending", sync automatically on reconnect (plus a Sync button), show per-action results (applied / rejected + plain-language reason) and clear the queue | NFR-4, FR-OFF-01 |
 
-**Role-specific home and navigation:** bottom tabs Fixtures · Standings · Store · Club/Profile (+ Scoring for organizers, + Roster for managers). Each role sees only what it can use. Super Admin sees all tenants (tenant switcher).
+**Role-specific home and navigation (user-directed redesign, 2026-10-18):** five bottom destinations Home · Fixtures · Standings · Store · Club/Profile. Home is the initial role-aware workspace and exposes prominent Scoring for organizers and Roster for managers; those workflows also remain reachable from authorized match/club details. Account is reachable from the shared header for every role. Super Admin sees all tenants through an explicit tenant switcher on Home/Account. Each role sees only actions it can use; server ownership and tenant checks remain authoritative. Fixtures, Standings, Store and Profile remain directly discoverable, as required by spec §8.6.
 
 **UI states (every data screen):** loading (spinner/skeleton), empty (helpful message, e.g. "No matches yet"), error (plain language plus a retry, never raw codes such as "Error 500"), success feedback (toast/snackbar), offline (cached data plus a banner).
 

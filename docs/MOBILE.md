@@ -1,6 +1,9 @@
 # Mobile setup and desk-check handoff
 
 See [mobile setup](../mobile/README.md) for real-API setup and native commands.
+Current backend: `http://10.195.242.35:8080` (default). Settings and
+`EXPO_PUBLIC_API_URL` can override it; restart Metro after build-time changes.
+
 Keychain, SQLite, NetInfo and APP-03 discovery are wired; preview data/controls
 are removed. Server mock payments remain mandated by the competition.
 

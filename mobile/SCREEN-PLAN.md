@@ -1,3 +1,20 @@
+> Current UX architecture (2026-10-18): Home is the initial destination for all
+> roles; bottom tabs are Home, Fixtures, Standings, Store and Club. Roster/Scoring
+> are prominent Home work actions and scoped stack destinations. The original
+> S01-S21 inventory remains reachable, plus Home and the supported Management/
+> Order Fulfillment screens. Search/date groups, expandable standings, responsive
+> catalogue, club/match/sync tabs and staged forms replace the earlier layouts.
+> Shared components are split by responsibility; see DESIGN-BRIEF.md. Earlier
+> visual/navigation descriptions below are historical, not current authority.
+
+> Active implementation update (2026-10-18): All S01-S21 screens and the existing
+> Management/OrderManagement routes are rebuilt in fresh `src/`, integrated with
+> production APIs. Original source is preserved at `src1/`. The sections below
+> describing preview-only screens, Screen Studio, missing discovery or unimplemented
+> services are historical planning records superseded by ADR-022/023 and this update.
+> Discovery APP-03 exists; product/order detail reads use APP-51/53. Native and full
+> backend journey acceptance are still pending. TypeScript and 18 mobile tests pass.
+
 > Current status (2026-10-17): earlier prototype descriptions below are historical.
 > Real APIs, APP-03 discovery, Keychain/SQLite, NetInfo and server PDFs are wired.
 > Mock data/engine, Screen Studio and unsupported P2 controls are removed.

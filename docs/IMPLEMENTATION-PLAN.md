@@ -75,3 +75,24 @@ The schedule below is historical planning.
 
 ## Definition of "Phase I ready" (≈ 14:50)
 Appendix C all green; TRACEABILITY covers FR-1.1…FR-5.1 and NFR-3/4/5/7; COVERAGE.json is generated; the APK is committed; the final push happens before 15:05:00.
+
+### Mobile redesign follow-up (2026-10-18)
+User-authorized replacement UI is implemented in fresh `mobile/src`, with original
+source preserved at `mobile/src1`. All 21 core screens and two existing management
+screens use reusable forest/mineral components and real APIs. TypeScript and 18
+mobile tests pass. APK/judging-device release and full backend/offline desk-check
+acceptance remain separate, pending checks. No commit or push was performed.
+
+### Second mobile redesign (2026-10-18)
+The user rejected the first redesign's similar composition. ADR-024 implements a
+Home workspace, five stable tabs, feature-specific components and guided task flows.
+TypeScript and 20 tests pass. Native screenshots and final bundle are recorded in
+mobile/qa-redesign/VERIFICATION.md; complete live backend/desk-check acceptance
+remains separate. The src1 archive is unchanged; no commit or push performed.
+
+### Sportron refinement (2026-10-18)
+Brand, concise copy, grouped sections and light/dark surface contrast are implemented
+under ADR-025. TypeScript, unused-code checks, 20 tests, Hermes export and offline
+native debug build pass. Existing development installation updated with Sportron
+label; no release/judging-device APK delivery claimed. Native evidence and limitations
+are in mobile/qa-redesign/SPORTRON.md. No commit/push.

@@ -356,8 +356,11 @@ The current `index.js` behavior is kept: on SIGTERM stop accepting, close idle k
 |---|---|
 | Host / grader | `http://localhost:8080` |
 | Inside compose | `http://api:8080` |
-| Android emulator | `http://10.0.2.2:8080` |
-| Physical phone | `http://<laptop LAN IP>:8080` (or `adb reverse tcp:8080 tcp:8080` → `http://localhost:8080`) |
+| Android emulator / physical phone | `http://10.195.242.35:8080` (current mobile default; Settings / `EXPO_PUBLIC_API_URL` override) |
+
+Mobile startup migrates saved localhost/emulator defaults to the configured API URL.
+Custom server choices remain unchanged. A changed server invalidates the restored
+session; cached work/outbox remains scoped to its original server/account.
 
 ### 10.5 Clean-checkout baseline (proposed commands; verify when implemented)
 Prerequisites: Docker Engine 24+ with Compose v2. Optional: Node 22 (unit tests on the host), Python 3.11+ (pytest), JDK 17 + Android SDK (mobile).
@@ -646,3 +649,59 @@ Limitations: sequential whole-workspace loading may need incremental reads for
 large tenants. Admin order filtering uses visible variants because APP-53 omits
 club_id. Unsupported P2 schedule/configuration/catalogue operations and existing-player
 role editing are absent from navigation. Native acceptance/full stack remain pending.
+
+### 11.4 Replacement mobile source (2026-10-18, ADR-023)
+
+The active application remains `mobile/App.tsx -> src/app/App.tsx`. The original
+source is preserved unchanged at `mobile/src1/`; TypeScript excludes that archive,
+and active source never imports it. The replacement keeps feature/service layering,
+Keychain sessions, scoped SQLite workspaces, realtime and API-40 queue contracts.
+`src/components/MatchScore.tsx:MatchScore` is the shared score presentation used by
+match details and scoring. All 21 core screens and the two existing management
+routes use the mineral/forest light and dark themes in `src/theme/tokens.ts`.
+
+APP-51 and APP-53 detail reads use `services/api/models.ts:loadProduct/loadOrder`.
+`services/api/commands.ts:queueBaseVersion` rejects unknown roster history rather than
+inventing a version; RosterAction preloads history while online. The configured
+server is preserved across restarts; the default is the documented emulator URL.
+No service, dependency, backend contract or open-question default changes.
+Native acceptance and complete backend journeys remain pending until verified.
+
+### 16.1 Mobile redesign acceptance limits (2026-10-18)
+Native visual/accessibility and live backend desk-check acceptance remain pending.
+The current full refresh is aggregated: a failed resource can prevent the complete
+refresh, while the last saved workspace remains visible with retry/error feedback.
+See mobile/qa-redesign/VERIFICATION.md for observed checks and blocked evidence.
+
+### 11.5 Task-oriented mobile composition (2026-10-18, ADR-024)
+
+The first replacement was rejected as too similar. The active application now uses
+five stable tabs: Home, Fixtures, Standings, Store, Club. Home is role-aware; scoped
+Roster/Scoring are prominent workspace actions and retain their existing stack
+routes. Account remains available from the appbar. REQUIREMENTS section 9 records
+this user-directed presentation change; service and API contracts are unchanged.
+
+`components/ui.tsx` is a compatibility export surface. Implementations are split
+into `actions/controls.tsx`, `display/primitives.tsx`, `feedback/states.tsx`,
+`forms/{fields,FormProgress}.tsx`, and `layout/containers.tsx`. Feature components
+live with fixtures (MatchCard), standings (StandingRow), store (ProductCard,
+ProductMedia), clubs (ClubRosterRow), matches (MatchTimeline) and home (DashboardSections).
+Pure fixtures selectors own search/filter/date grouping; home selectors prioritize
+real scoped matches. Data services, secure sessions, SQLite, sync and realtime
+remain separate from feature presentation.
+
+Fixtures are searchable/date-grouped; standings expand statistics within phone
+width; store uses a responsive grid and purchase footer; club/match/sync use
+content tabs; roster/add-player/scoring use explicit steps and review screens.
+No new dependencies, services, schema, storage scope or environment variables.
+
+### Sportron presentation refinement (ADR-025, 2026-10-18)
+`mobile/app.json` display name is Sportron and slug is sportron. Native application
+ID com.nascon.sports and persistence/native bridge identifiers remain stable.
+Reproducible prebuild derives the launcher label from app.json. The local generated
+Android string was updated and an offline debug build/install verified the label.
+
+Theme tokens add explicit dark surfaces and their readable foregrounds. Shared
+Section owns close heading/content grouping; Button.onDark and optional IconButton/
+Avatar colors support the complementary surfaces without changing service layers.
+Source APIs, SQLite scope, Keychain and offline behavior remain unchanged.

@@ -68,3 +68,35 @@ Mobile uses authenticated APIs; native acceptance remains pending (docs/MOBILE.m
 
 TypeScript, 15 mobile tests and Hermes export pass. No backend domain code changed;
 COVERAGE.json regeneration is not required for this slice.
+
+## Replacement mobile source (2026-10-18)
+
+| IDs | Active implementation | Verification |
+|---|---|---|
+| MOB-01-10, NFR-ACC-01 | `mobile/src/features/*/*Screen.tsx`, `components/ui.tsx:Screen/Field/Button/Sheet`, `components/MatchScore.tsx:MatchScore`, `theme/tokens.ts` | TypeScript passes; 18 mobile service/contrast tests pass. Native journey acceptance remains pending. |
+| APP-51/53 | `services/api/models.ts:loadProduct/loadOrder`, `app/AppContext.tsx:fetchProduct/fetchOrder` | `APP-51/53: detail reads encode IDs, preserve server totals and normalize missing variants` passes with transport doubles; live backend pending. |
+| MOB-11/12, APP-40 | `services/api/commands.ts:queueBaseVersion`, `features/roster/RosterActionScreen.tsx:RosterActionScreen`, `app/AppContext.tsx:run/syncInternal` | `MOB-12: queued versions distinguish unknown history from a real empty history` and scoped SQLite/Keychain tests pass; force-close/reconnect journey pending. |
+| MOB-10 | `config/env.ts`, `app/AppContext.tsx:load/changeServer` | `MOB-10: backend default, saved development addresses and public override stay configurable` passes. |
+
+The unchanged original source is `mobile/src1`; 61 tracked original files matched
+HEAD after normalizing Git line endings. No backend domain changes; COVERAGE.json
+regeneration is not applicable.
+
+## Task-oriented mobile redesign (2026-10-18, ADR-024)
+
+| IDs | Source functions | Evidence |
+|---|---|---|
+| MOB-01 | `features/home/HomeScreen.tsx:HomeScreen`, `home/selectors.ts:dashboardMatches`, `home/components/DashboardSections.tsx:WorkSection`, `navigation/screenRegistry.ts:tabsForRole` | Mobile tests `MOB-01: role tabs stay within five destinations`, `MOB-01: home prioritizes owned live matches without inventing a match` pass. |
+| MOB-02 | `features/fixtures/selectors.ts:filterFixtures/groupFixtures`, `fixtures/components/MatchCard.tsx:MatchCard` | `MOB-02: fixture discovery combines team, venue, status and team scope filters` passes. |
+| MOB-03/04/05/06 | `matches/MatchDetailScreen.tsx`, `standings/components/StandingRow.tsx`, `clubs/ClubProfileScreen.tsx`, `store/components/ProductCard.tsx`, `store/ProductDetailScreen.tsx` | Phone-first progressive sections and shared component integration; source typecheck and 20 mobile tests pass; native evidence in qa report. |
+| MOB-07/08/09/10, NFR-ACC-01 | `components/forms/FormProgress.tsx`, `features/roster/*Screen.tsx`, `scoring/ScoringEntryScreen.tsx`, `sync/SyncStatusScreen.tsx`, `settings/SettingsScreen.tsx`, `components/{layout,feedback,forms,actions,display}` | Guided steps, review, compact recovery and theme/scaling retained; live writes and accessibility journeys remain pending. |
+
+No backend domain edits; COVERAGE.json regeneration is not applicable. Original
+src1 backup still matches all 61 tracked source files from HEAD.
+
+## Sportron refinement (2026-10-18)
+| IDs | Source | Evidence |
+|---|---|---|
+| MOB-01-10, FR-2.1-02, NFR-ACC-01 | `mobile/app.json`, `app/App.tsx`, `components/layout/containers.tsx:Section/Screen`, `theme/tokens.ts`, `components/actions/controls.tsx:Button/IconButton`, feature screens | TypeScript and unused-code checks pass; 20 mobile tests pass, including 4 additional dark-surface contrast pairs. Android Hermes900 modules pass. Offline debug build succeeds: 244 tasks, 36 executed; APK label verified Sportron and installed over existing development app. Native visuals tracked separately. |
+No backend/domain changes; backend tests and COVERAGE.json regeneration are not
+applicable to this branding/copy/layout change. Original src1 remains unchanged.
