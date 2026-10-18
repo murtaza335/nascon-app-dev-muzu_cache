@@ -31,7 +31,7 @@ port 3000 and the `{error_code}` body) predate the spec. **Where they conflict w
 - **Domain:** no sport ids or event names (`football`, `goal`, `wicket`, …) outside `backend/src/seed/**` and tests (−8 penalty). No third-party fixture-generation libraries. `backend/src/domain/**` is pure: no I/O, no `Date.now()`, no `process.env`.
 - **Contracts:** response field names, status codes and error codes are copied from REQUIREMENTS §7–8 exactly. Never invent a code where an Appendix B code applies.
 - **Third-party services:** no Firebase, Supabase, Amplify or any managed BaaS (−10). Payments go only through our mock gateway.
-- **Git:** work on `master` unless a human says otherwise. Never force-push, rewrite pushed history, or commit `.env`, `node_modules` or a nested `.git` in `mobile/`. Pushing is a **human-authorized** action: an agent commits locally and pushes only when explicitly told to. Remind the team of push windows: 10:45–11:45, 11:45–12:45, 12:45–13:45, 13:45–14:45, final ≤ 15:05:00.
+- **Git:** work on `master` unless a human says otherwise. Never force-push, rewrite pushed history, or commit `.env`, `node_modules` or a nested `.git` in `mobile/`. Committing and pushing are **human-authorized** actions: an agent never runs `git commit` (not even locally) or `git push` unless a human explicitly asks for that specific commit/push; agents leave changes in the working tree and list them in the report. Remind the team of push windows: 10:45–11:45, 11:45–12:45, 12:45–13:45, 13:45–14:45, final ≤ 15:05:00.
 - **Deployment:** there is no deployment beyond the grader cloning the repo. `docker compose down -v` is a manual reset only; never script it into startup.
 
 ## 4. Working loop
@@ -115,7 +115,7 @@ Minimum per change: the unit tests for the touched area. Backend route changes a
 4. Checks **not** run and why (e.g. "stack not running: compose build blocked by network"). A blocked check stays visible as blocked; never write "should work".
 5. Remaining issues, risks and open questions.
 
-**Human-only release actions:** registering the repo URL, `git push`, building and installing the APK on the judging device, setting `SEED_DEMO_DATA=true` before judging, raising written questions to organizers before 13:00 PKT.
-**Agent-authorized:** local commits, code, tests, docs, local builds, running compose locally.
+**Human-only release actions:** registering the repo URL, `git commit` and `git push` (unless a human explicitly asks an agent to run them), building and installing the APK on the judging device, setting `SEED_DEMO_DATA=true` before judging, raising written questions to organizers before 13:00 PKT.
+**Agent-authorized:** code, tests, docs, local builds, running compose locally. **Not** commits: `git commit` and `git push` only on explicit human request.
 
 **Pre-push gate (human runs, agent may prepare):** Appendix C checklist in REQUIREMENTS §11, `./run_tests.sh` green, cold `docker compose up -d --build` → `/health` 200, `COVERAGE.json` regenerated, TRACEABILITY current, the APK present at `mobile/release/app-release.apk` once built.

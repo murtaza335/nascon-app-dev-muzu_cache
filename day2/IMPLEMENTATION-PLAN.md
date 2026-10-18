@@ -1,8 +1,8 @@
 # Day 2 Implementation Plan (end-to-end)
 
 Order follows marks: P0 graded contracts → infra probes (grid, metrics, k6) → guest web DOM → media realism → mobile → P2.
-Each slice = domain + unit tests → service/repo → route → API vector → TRACEABILITY row → local commit (gate G below).
-**Agents commit locally; humans push in each window.**
+Each slice = domain + unit tests → service/repo → route → API vector → TRACEABILITY row → report (gate G below).
+**Agents never commit or push unless a human explicitly asks; humans commit and push in each window.**
 
 ## Timeline (PKT, Sunday 2026-10-18)
 | Window | Time | Target state pushed |
@@ -40,7 +40,7 @@ are edited **only** by Backend-A — others send the line they need.
 1. `cd backend && node --test "tests/unit/**/*.test.js"` green.
 2. Restart API (dev container per memory notes), `/health` 200.
 3. `pytest tests/api/test_<area>_api.py` green + full `tests/api -m "not destructive"` before each push (Phase I regression).
-4. TRACEABILITY row updated; `git commit` (local).
+4. TRACEABILITY row updated; changes left uncommitted and listed in the report (human commits).
 
 ## Pre-push (each window, human)
 `./run_tests.sh` → green, `COVERAGE_DAY2.json` regenerated, `git log --oneline -3`, push, check GitHub server time is inside the window.
