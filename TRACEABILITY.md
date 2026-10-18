@@ -128,4 +128,5 @@ applicable to this branding/copy/layout change. Original src1 remains unchanged.
 | QA-01…07 | `docker-compose.yml`, `tests/selenium`, `tests/appium`, `tests/k6_load.js`, `.github/workflows/autograde.yml`, `scripts/coverage-day2.mjs`, `COVERAGE_DAY2.json` | CI run (selenium/appium need the frontend/device) | impl |
 | WEB-01…09 | `backend/src/web/live.html` | `tests/selenium/test_guest_grid.py` | planned (frontend) |
 | MOB-D2-01…06 | mobile | `tests/appium/*` | planned (frontend) |
-| EC-1…4 | see REQUIREMENTS §6 | `test_costream_api.py`, `test_qr_api.py`, `test_moderation_api.py::test_concurrent_kick_race`, `test_guest_cart_api.py` | tested |
+| EC-1…4 | see REQUIREMENTS §6 | `test_costream_api.py`, `test_qr_api.py`, `test_moderation_api.py::test_concurrent_kick_race`, `test_guest_cart_api.py` | tested | 
+for the push
