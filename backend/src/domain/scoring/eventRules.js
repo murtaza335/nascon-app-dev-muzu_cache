@@ -6,7 +6,20 @@
 const { E } = require('../../errors');
 const { t } = require('../../lib/validate');
 
-const EVENT_TYPES = ['match_init', 'match_start', 'score', 'discipline', 'tiebreak_winner', 'match_end', 'compensation'];
+// Part II (Q-01): terminal lifecycle states reachable from upcoming or in_progress.
+const LIFECYCLE = { match_postponed: 'postponed', match_cancelled: 'cancelled', match_abandoned: 'abandoned' };
+const EVENT_TYPES = ['match_init', 'match_start', 'score', 'discipline', 'tiebreak_winner', 'match_end', 'compensation', ...Object.keys(LIFECYCLE)];
+const TYPE_ALIASES = { match_postpone: 'match_postponed', match_cancel: 'match_cancelled', match_abandon: 'match_abandoned' };
+
+// Maps aliases and `status_change {status}` onto the canonical lifecycle types; anything else is returned unchanged.
+function normalizeType(type, payload) {
+  if (Object.hasOwn(TYPE_ALIASES, type)) return TYPE_ALIASES[type];
+  if (type === 'status_change' && payload && typeof payload === 'object') {
+    const found = Object.entries(LIFECYCLE).find(([, st]) => st === payload.status);
+    if (found) return found[0];
+  }
+  return type;
+}
 const COMPENSABLE = ['score', 'discipline', 'tiebreak_winner'];
 
 const PAYLOADS = {
@@ -16,6 +29,7 @@ const PAYLOADS = {
   discipline: { team_id: t.id({ required: true }), points: t.int({ required: true }) },
   tiebreak_winner: { team_id: t.id({ required: true }) },
   match_end: {},
+  match_postponed: {}, match_cancelled: {}, match_abandoned: {},
   compensation: { compensates: t.id({ required: true }), reason: t.string({ required: true, min: 1, max: 500 }) },
 };
 
@@ -70,6 +84,11 @@ function checkState(type, payload, { match, config, view, target }) {
       if (level && !config.draw_allowed && view.tiebreak_winner_team_id === null) return fail(E.TIE_NOT_ALLOWED);
       return OK;
     }
+    case 'match_postponed':
+    case 'match_cancelled':
+    case 'match_abandoned':
+      return view.status === 'upcoming' || view.status === 'in_progress' ? OK
+        : fail(E.ILLEGAL_TRANSITION, { from: view.status, to: LIFECYCLE[type] });
     case 'compensation': {
       if (!target || target.match_id !== match.match_id || !COMPENSABLE.includes(target.type)) return fail(E.INVALID_COMPENSATION);
       if (view._compensatedBy.has(payload.compensates)) return fail(E.INVALID_COMPENSATION);
@@ -80,4 +99,4 @@ function checkState(type, payload, { match, config, view, target }) {
   }
 }
 
-module.exports = { EVENT_TYPES, payloadShape, checkSemantics, checkState };
+module.exports = { LIFECYCLE, normalizeType, EVENT_TYPES, payloadShape, checkSemantics, checkState };

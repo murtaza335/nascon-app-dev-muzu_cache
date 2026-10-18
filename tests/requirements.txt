@@ -7,3 +7,4 @@ pytest-html
 pytest-timeout
 pypdf
 websocket-client
+pytest-xdist

@@ -91,3 +91,11 @@ Final native review passed for reviewed scope: portrait/light/dark plus 360x640 
   Offline Android debug build passes 244 tasks; APK label Sportron verified and installed
   over the existing development app. No commits or pushes. Native capture evidence
   and remaining limitations are recorded in mobile/qa-redesign/SPORTRON.md.
+
+## 2026-10-18 - Part II backend (Day 2)
+- Added DAY2_SALT (config, boot check, compose), migration `002_day2.sql`, Part II seed (`seed/day2.js`, baseline `p2-1`; an older database is re-seeded once at boot).
+- New endpoints: stream key, co-stream session, QR (+svg/png/pdf, `/q`), cart merge, moderation/DLQ, `/metrics`, privacy erasure; product API (guest, public reads, chat, athletes/follow, streams, co-streams, notifications), `/ws/matches`, `/ws/costream`, SSE, media hooks.
+- Guest write guard runs before body parsing. Allow-list also includes `POST /api/v1/auth/login|register` (progressive auth keeps the guest header).
+- Lifecycle events `match_postponed|cancelled|abandoned` (+aliases, `status_change`) added to the scoring domain.
+- New env: DAY2_SALT, PUBLIC_BASE_URL, PUBLIC_MEDIA_HOST, MEDIA_API_URL, MEDIA_HOOK_TOKEN, DLQ_BACKOFF_MS, GUEST_TOKEN_TTL_SECONDS, MEDIA_CHECK_REQUIRED (local switch), MEDIA_WITH_FFMPEG, SELENIUM_TAG.
+- Compose: `media` (MediaMTX wrapper) and Selenium Grid (hub + 2 Chrome + 1 Firefox) added (D2-ADR-02/03 were marked "needs approval": human sign-off still required).

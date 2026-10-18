@@ -1,0 +1,48 @@
+# MediaMTX 1.9.1 for NaSCon Part II (day2/ARCHITECTURE §4). Publish/read authorisation is delegated to the backend.
+logLevel: info
+api: yes
+apiAddress: :9997
+
+authMethod: http
+authHTTPAddress: http://backend:8080/internal/media/auth
+authHTTPExclude:
+  - action: api
+  - action: metrics
+  - action: pprof
+
+rtsp: yes
+rtspAddress: :8554
+rtmp: yes
+rtmpAddress: :1935
+hls: yes
+hlsAddress: :8888
+hlsAllowOrigin: '*'
+hlsVariant: lowLatency
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+webrtc: yes
+webrtcAddress: :8889
+webrtcAllowOrigin: '*'
+webrtcLocalUDPAddress: :8189
+webrtcAdditionalHosts: []
+srt: no
+
+record: yes
+recordPath: /recordings/%path/%Y-%m-%d_%H-%M-%S-%f
+recordFormat: fmp4
+recordPartDuration: 1s
+recordSegmentDuration: 10s
+recordDeleteAfter: 0s
+
+paths:
+  # Solo streams: any key; the auth hook decides whether it may publish.
+  '~^live/.+$':
+    runOnReady: /hook.sh ready
+    runOnNotReady: /hook.sh not_ready
+    runOnRecordSegmentComplete: /hook.sh segment_complete
+  # Co-stream composite: produced on demand by the supervised compositor (no orphan FFmpeg: MediaMTX owns the child).
+  '~^costream/(.+)$':
+    runOnDemand: /compose.sh $G1
+    runOnDemandRestart: yes
+    runOnDemandCloseAfter: 10s
+  all_others:

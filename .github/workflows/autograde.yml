@@ -1,0 +1,66 @@
+# Part II autograder mirror (spec §1.3): contract probes, Selenium Grid status + suite, k6 smoke. Real runs, nothing mocked.
+name: autograde
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch: {}
+
+jobs:
+  autograde:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DAY1_SALT: ci-salt-day1
+      DAY2_SALT: CI0123456789abcd
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Ancestry of the Day 1 base commit
+        env:
+          DAY1_BASE_SHA: ${{ vars.DAY1_BASE_SHA }}
+        run: |
+          if [ -n "$DAY1_BASE_SHA" ]; then git merge-base --is-ancestor "$DAY1_BASE_SHA" HEAD; else echo "DAY1_BASE_SHA not set: skipped"; fi
+      - name: Cold start like the grader
+        run: |
+          docker compose up -d --build
+          chmod +x scripts/*.sh
+          ./scripts/wait-for-health.sh http://localhost:8080/health 120
+          docker compose ps
+      - name: Selenium Grid has a ready hub and three nodes
+        run: |
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:4444/status | jq -e '.value.ready == true and (.value.nodes | length) >= 3' && exit 0
+            sleep 2
+          done
+          curl -s http://localhost:4444/status; exit 1
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Unit tests and coverage (Phase I + Phase II)
+        run: |
+          mkdir -p reports tests/reports
+          cd backend && npm ci --omit=dev && node --test --experimental-test-coverage --test-reporter=lcov --test-reporter-destination=../reports/lcov.info "tests/unit/**/*.test.js"
+          cd .. && node scripts/coverage-areas.js reports/lcov.info && node scripts/coverage-day2.mjs reports/lcov.info
+      - name: Contract probes (API suite)
+        run: |
+          python -m venv .venv && .venv/bin/pip install -q -r tests/requirements.txt
+          cd tests && ../.venv/bin/pytest api -m "not destructive" -q --junitxml=reports/api-report.xml
+      - name: Selenium suite (3 parallel workers)
+        env:
+          SELENIUM_URL: http://localhost:4444/wd/hub
+          BASE_WEB: http://host.docker.internal:8080
+          API_BASE: http://localhost:8080
+        run: cd tests && ../.venv/bin/pytest selenium -n 3 -q --junitxml=reports/selenium-report.xml
+      - name: Appium report (skips honestly without a device)
+        run: cd tests && ../.venv/bin/pytest appium -q --junitxml=reports/appium-report.xml || true
+      - name: k6 smoke (spec profile)
+        run: |
+          chmod -R 777 tests/reports
+          docker run --rm --network host -v "$PWD/tests:/tests" grafana/k6:0.54.0 run --summary-export=/tests/reports/k6-summary.json /tests/k6_load.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: reports, path: "tests/reports\nreports/lcov.info\nCOVERAGE_DAY2.json" }
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --tail=200

@@ -26,10 +26,12 @@ const ENVELOPE = {
 };
 
 const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
-const STATUS_AFTER = { match_start: 'in_progress', match_end: 'completed' };
+const STATUS_AFTER = { match_start: 'in_progress', match_end: 'completed', ...Object.fromEntries(Object.entries(rules.LIFECYCLE)) };
 
 // Step 1. Returns the validated event; throws 400 with every offending field.
-function validateEvent(body) {
+function validateEvent(rawBody) {
+  const body = rawBody && typeof rawBody === 'object' && typeof rawBody.type === 'string'
+    ? { ...rawBody, type: rules.normalizeType(rawBody.type, rawBody.payload) } : rawBody;
   const env = check(ENVELOPE, body);
   const fields = env.ok ? [] : [...env.fields];
   let payload = body && typeof body === 'object' ? body.payload : undefined;

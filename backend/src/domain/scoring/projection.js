@@ -3,6 +3,8 @@
 // Input events: [{event_id, sequence, type, payload, signature}] in sequence order.
 // Dispatch is on scoring_model only; event names come from the sport config, never from code.
 
+const { LIFECYCLE } = require('./eventRules');
+
 const ZERO = () => ({ score: 0, wickets: 0, balls: 0, fair_play: 0 });
 
 function build({ match, config, events }) {
@@ -22,6 +24,7 @@ function build({ match, config, events }) {
   for (const e of events) {
     if (e.type === 'match_start') status = 'in_progress';
     else if (e.type === 'match_end') status = 'completed';
+    else if (LIFECYCLE[e.type]) status = LIFECYCLE[e.type];
     if (!isActive(e)) continue;
     const s = stats[e.payload && e.payload.team_id];
     if (!s) continue;

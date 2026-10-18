@@ -6,6 +6,7 @@
 // services throw AppError built from them.
 const E = Object.freeze({
   VALIDATION_ERROR: { status: 400, code: 'VALIDATION_ERROR', message: 'Request validation failed' },
+  UNSUPPORTED_LAYOUT: { status: 400, code: 'UNSUPPORTED_LAYOUT', message: 'Layout cannot hold that many participants' },
   UNKNOWN_EVENT_TYPE: { status: 400, code: 'UNKNOWN_EVENT_TYPE', message: 'Unknown event type for this sport' },
   INVALID_DISCOUNT_CODE: { status: 400, code: 'INVALID_DISCOUNT_CODE', message: 'Discount code is not valid' },
   UNAUTHENTICATED: { status: 401, code: 'UNAUTHENTICATED', message: 'Authentication required' },
@@ -13,6 +14,9 @@ const E = Object.freeze({
   PAYMENT_DECLINED: { status: 402, code: 'PAYMENT_DECLINED', message: 'Payment was declined' },
   PAYMENT_CAPTURE_FAILED: { status: 402, code: 'PAYMENT_CAPTURE_FAILED', message: 'Payment capture failed' },
   FORBIDDEN: { status: 403, code: 'FORBIDDEN', message: 'You do not have access to this resource' },
+  GUEST_WRITE_FORBIDDEN: { status: 403, code: 'GUEST_WRITE_FORBIDDEN', message: 'Anonymous guest tokens cannot perform write mutations.' },
+  STREAM_NOT_FOUND: { status: 404, code: 'STREAM_NOT_FOUND', message: 'Stream not found' },
+  QR_NOT_FOUND: { status: 404, code: 'QR_NOT_FOUND', message: 'QR code not found' },
   SPORT_NOT_FOUND: { status: 404, code: 'SPORT_NOT_FOUND', message: 'Sport not found' },
   MATCH_NOT_FOUND: { status: 404, code: 'MATCH_NOT_FOUND', message: 'Match not found' },
   LEAGUE_NOT_FOUND: { status: 404, code: 'LEAGUE_NOT_FOUND', message: 'League not found' },
@@ -25,6 +29,9 @@ const E = Object.freeze({
   PRODUCT_NOT_FOUND: { status: 404, code: 'PRODUCT_NOT_FOUND', message: 'Product not found' },
   ORDER_NOT_FOUND: { status: 404, code: 'ORDER_NOT_FOUND', message: 'Order not found' },
   ROUTE_NOT_FOUND: { status: 404, code: 'ROUTE_NOT_FOUND', message: 'Route not found' },
+  COSTREAM_SESSION_FULL: { status: 409, code: 'COSTREAM_SESSION_FULL', message: 'Co-stream supports at most 4 broadcasters' },
+  KEY_REVOKED: { status: 409, code: 'KEY_REVOKED', message: 'Stream key was revoked' },
+  GUEST_TOKEN_ALREADY_MERGED: { status: 409, code: 'GUEST_TOKEN_ALREADY_MERGED', message: 'Guest token was already merged' },
   SPORT_EXISTS: { status: 409, code: 'SPORT_EXISTS', message: 'Sport already exists' },
   LEAGUE_EXISTS: { status: 409, code: 'LEAGUE_EXISTS', message: 'League already exists' },
   MATCH_EXISTS: { status: 409, code: 'MATCH_EXISTS', message: 'Match already exists' },

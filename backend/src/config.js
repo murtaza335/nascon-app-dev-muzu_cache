@@ -25,6 +25,15 @@ module.exports = Object.freeze({
   logLevel: env.LOG_LEVEL || 'info',
   // Secret: never trimmed, never logged. Boot refuses to start without it (index.js).
   day1Salt: env.DAY1_SALT || '',
+  // Phase II secret: same rules as DAY1_SALT (never trimmed, never logged, boot refuses without it).
+  day2Salt: env.DAY2_SALT || '',
+  publicBaseUrl: env.PUBLIC_BASE_URL || 'http://localhost:8080',
+  publicMediaHost: env.PUBLIC_MEDIA_HOST || 'localhost',
+  mediaApiUrl: env.MEDIA_API_URL || 'http://media:9997',
+  mediaCheckRequired: bool(env.MEDIA_CHECK_REQUIRED, true),
+  mediaHookToken: env.MEDIA_HOOK_TOKEN || 'media-hook-dev',
+  dlqBackoffMs: int(env.DLQ_BACKOFF_MS, 5),
+  guestTokenTtlSeconds: int(env.GUEST_TOKEN_TTL_SECONDS, 7200),
   // Explicit secret wins; otherwise lib/jwt.js derives one from the salt (ARCHITECTURE §9).
   jwtSecret: env.JWT_SECRET || '',
   jwtTtlSeconds: int(env.JWT_TTL_SECONDS, 43200),

@@ -96,7 +96,7 @@ const VARIANTS = [
 ];
 
 const DEFAULT_SEED = 42;
-const BASELINE_VERSION = '1';
+const BASELINE_VERSION = 'p2-1';
 
 function defaultStock() {
   return Object.fromEntries(VARIANTS.map((v) => [v.variant_id, v.stock]));
@@ -148,6 +148,7 @@ async function seedBaseline(client, { seed = DEFAULT_SEED, stock = {} } = {}) {
   await q("INSERT INTO discount_codes (code, percent, active) VALUES ('WELCOME10', 10, true)");
   await q("INSERT INTO counters (name, value) VALUES ('auth', 0), ('cap', 0)");
   await q(`INSERT INTO app_state (key, value) VALUES ('last_reset_seed', $1), ('baseline_version', $2)`, [String(seed), BASELINE_VERSION]);
+  await require('./day2').seedDay2(client);
   if (config.seedDemoData) await require('./demo').seedDemo(client); // OFF for the grader
 }
 

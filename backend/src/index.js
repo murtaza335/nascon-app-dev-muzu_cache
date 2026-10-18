@@ -16,10 +16,16 @@ if (!config.day1Salt) {
   process.exit(1);
 }
 
+if (!config.day2Salt) {
+  console.error('[boot] DAY2_SALT is missing or empty; refusing to start');
+  process.exit(1);
+}
+
 async function main() {
   await db.waitForDb();
   await runMigrations();
   const seeded = await ensureBaseline();
+  require('./services/media').startPolling();
   console.log(`[boot] baseline ${seeded ? 'seeded' : 'already present'}`);
   cache.connect(); // non-blocking: the API works (BYPASS) while Redis is unavailable
 
@@ -30,6 +36,7 @@ async function main() {
   const hub = createHub();
   hub.attach(server);
   hooks.setPublisher(hub.publish);
+  require('./services/sseFeed').setHub(hub);
 
   let shuttingDown = false;
   async function shutdown(signal) {

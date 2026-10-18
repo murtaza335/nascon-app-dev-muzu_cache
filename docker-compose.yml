@@ -66,6 +66,13 @@ services:
       PORT: 8080
       NODE_ENV: production
       DAY1_SALT: ${DAY1_SALT}
+      DAY2_SALT: ${DAY2_SALT}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      PUBLIC_MEDIA_HOST: ${PUBLIC_MEDIA_HOST:-localhost}
+      MEDIA_API_URL: http://media:9997
+      MEDIA_HOOK_TOKEN: ${MEDIA_HOOK_TOKEN:-media-hook-dev}
+      DLQ_BACKOFF_MS: ${DLQ_BACKOFF_MS:-5}
+      GUEST_TOKEN_TTL_SECONDS: ${GUEST_TOKEN_TTL_SECONDS:-7200}
       DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@postgres:5432/${POSTGRES_DB:-app}
       REDIS_URL: redis://redis:6379
       CACHE_ENABLED: ${CACHE_ENABLED:-true}
@@ -79,6 +86,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      media:
+        condition: service_healthy   # /health verifies the media server (Part II spec §5.2)
     healthcheck:
       # 127.0.0.1 rather than localhost: busybox wget may resolve localhost to ::1 first.
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health || exit 1"]
@@ -88,12 +97,111 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  media:
+    # MediaMTX 1.9.1 in a wrapper image (D2-ADR-02): RTMP 1935, HLS 8888, WebRTC WHIP/WHEP 8889 (+8189/udp ICE), API 9997 (internal).
+    build:
+      context: ./media
+      args:
+        WITH_FFMPEG: ${MEDIA_WITH_FFMPEG:-true}
+    image: nascon-media:local
+    ports:
+      - "1935:1935"
+      - "8888:8888"
+      - "8889:8889"
+      - "8189:8189/udp"
+    environment:
+      MEDIA_HOOK_TOKEN: ${MEDIA_HOOK_TOKEN:-media-hook-dev}
+      MTX_WEBRTCADDITIONALHOSTS: ${MEDIA_WEBRTC_HOSTS:-}
+    volumes:
+      - recordings:/recordings
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9997/v3/paths/list > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 3s
+    restart: unless-stopped
+
+  selenium-hub:
+    # Selenium Grid 4 (QA-01). Local machines without the 4.25.0 images: SELENIUM_TAG=4.24.0.
+    image: selenium/hub:${SELENIUM_TAG:-4.25.0}
+    ports:
+      - "4442:4442"
+      - "4443:4443"
+      - "4444:4444"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:4444/status | grep -q '\"ready\": *true'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  node-chrome-1:
+    image: selenium/node-chrome:${SELENIUM_TAG:-4.25.0}
+    shm_size: "1gb"
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment: &selenium_node_env
+      SE_EVENT_BUS_HOST: selenium-hub
+      SE_EVENT_BUS_PUBLISH_PORT: 4442
+      SE_EVENT_BUS_SUBSCRIBE_PORT: 4443
+      SE_NODE_MAX_SESSIONS: 2
+      SE_START_VNC: "false"
+      SE_START_NO_VNC: "false"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:5555/status > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  node-chrome-2:
+    image: selenium/node-chrome:${SELENIUM_TAG:-4.25.0}
+    shm_size: "1gb"
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment: *selenium_node_env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:5555/status > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  node-firefox:
+    image: selenium/node-firefox:${SELENIUM_TAG:-4.25.0}
+    shm_size: "1gb"
+    depends_on:
+      selenium-hub:
+        condition: service_healthy
+    environment: *selenium_node_env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:5555/status > /dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
   worker:
     # Same image as the API: transactional-outbox relay → Redis Stream, consumer group, receipt archive.
     image: nascon-backend:local
     command: ["node", "src/worker.js"]
     environment:
       NODE_ENV: production
+      DAY2_SALT: ${DAY2_SALT}
+      MEDIA_API_URL: http://media:9997
       DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@postgres:5432/${POSTGRES_DB:-app}
       REDIS_URL: redis://redis:6379
       S3_ENDPOINT: http://objectstore:4566
@@ -121,3 +229,4 @@ services:
 volumes:
   pgdata:
   objects:
+  recordings:

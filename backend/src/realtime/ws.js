@@ -8,10 +8,13 @@ const auth = require('../services/auth');
 const { authorize } = require('../domain/rbac/policy');
 const appRepo = require('../repos/app');
 const leaguesRepo = require('../repos/leagues');
+const day2 = require('./day2Sockets');
+const metrics = require('../services/metrics');
 
-const TOPIC_RE = /^(match|league|store):([A-Za-z0-9_.:-]{1,64})$/;
+const TOPIC_RE = /^(match|league|store|chat|user):([A-Za-z0-9_.:-]{1,64})$/;
 const MAX_TOPICS = 50;
-const PING_MS = 25000;
+const PING_MS = 20000;
+const IDLE_MS = 60000;
 
 function createHub() {
   const topics = new Map(); // topic → Set<ws>
@@ -24,8 +27,20 @@ function createHub() {
     const subs = topics.get(topic);
     if (!subs) return;
     const text = JSON.stringify(message);
-    for (const ws of subs) if (ws.readyState === 1) ws.send(text);
+    // Members are sockets, or plain functions (SSE streams) that receive (text, message).
+    for (const m of subs) {
+      if (typeof m === 'function') m(text, message);
+      else if (m.readyState === 1) m.send(text);
+    }
   }
+
+  // In-process subscription for non-socket consumers (SSE). Returns the unsubscribe function.
+  function subscribe(topic, fn) {
+    if (!topics.has(topic)) topics.set(topic, new Set());
+    topics.get(topic).add(fn);
+    return () => { const s = topics.get(topic); if (s) { s.delete(fn); if (!s.size) topics.delete(topic); } };
+  }
+  const hasSubscribers = (topic) => topics.has(topic);
 
   // → null when allowed, else an error code. Tenant isolation applies to every subscription.
   async function authorizeTopic(principal, kind, id) {
@@ -39,6 +54,8 @@ function createHub() {
       if (!l) return E.LEAGUE_NOT_FOUND.code;
       return authorize(principal, 'league.read', { tenant_id: l.tenant_id }) ? null : E.FORBIDDEN.code;
     }
+    if (kind === 'chat') return null;
+    if (kind === 'user') return principal.user_id === id || principal.role === 'super_admin' ? null : E.FORBIDDEN.code;
     return authorize(principal, 'store.read', { tenant_id: id }) ? null : E.FORBIDDEN.code;
   }
 
@@ -68,6 +85,7 @@ function createHub() {
     server.on('upgrade', (req, socket, head) => {
       let url;
       try { url = new URL(req.url, 'http://x'); } catch { return socket.destroy(); }
+      if (url.pathname.startsWith('/ws/')) return day2.accept({ wss, req, socket, head, url, hub: api });
       if (url.pathname !== '/api/v1/ws') return socket.destroy();
       wss.handleUpgrade(req, socket, head, (ws) => {
         const claims = auth.verifyToken(url.searchParams.get('token') || '');
@@ -75,7 +93,8 @@ function createHub() {
         ws.principal = auth.principalFromClaims(claims);
         ws.topics = new Set();
         ws.isAlive = true;
-        ws.on('pong', () => { ws.isAlive = true; });
+        ws.lastPong = Date.now();
+        ws.on('pong', () => { ws.isAlive = true; ws.lastPong = Date.now(); });
         ws.on('message', (raw) => { onMessage(ws, raw).catch((err) => { console.error('[ws] handler error', err.message); send(ws, { type: 'error', code: E.INTERNAL_ERROR.code, message: 'Internal error' }); }); });
         ws.on('close', () => {
           for (const t of ws.topics) { const s = topics.get(t); if (s) { s.delete(ws); if (!s.size) topics.delete(t); } }
@@ -84,10 +103,10 @@ function createHub() {
         send(ws, { type: 'hello', user_id: ws.principal.user_id });
       });
     });
+    // Ping every 20 s; a client silent for 60 s (no pong) is closed (RT-D2-01).
     timer = setInterval(() => {
       for (const ws of wss.clients) {
-        if (ws.isAlive === false) { ws.terminate(); continue; }
-        ws.isAlive = false;
+        if (Date.now() - (ws.lastPong || 0) > IDLE_MS) { ws.terminate(); continue; }
         try { ws.ping(); } catch { /* socket closing */ }
       }
     }, PING_MS);
@@ -99,7 +118,9 @@ function createHub() {
     if (wss) for (const ws of wss.clients) ws.terminate();
   }
 
-  return { attach, publish, close, _topics: topics };
+  const api = { attach, publish, subscribe, hasSubscribers, close, _topics: topics, connectionCount: () => (wss ? wss.clients.size : 0) };
+  metrics.register('ws', api.connectionCount);
+  return api;
 }
 
 module.exports = { createHub };

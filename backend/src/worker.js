@@ -8,6 +8,7 @@ const { installProcessHandlers } = require('./errors');
 const { relayBatch } = require('./queue/outbox');
 const consumers = require('./queue/consumers');
 const { sweepExpired } = require('./queue/sweeper');
+const reconciler = require('./queue/mediaReconciler');
 
 installProcessHandlers();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -40,7 +41,7 @@ async function main() {
   consumerRedis.on('error', () => {});
   await consumerRedis.connect();
   const s3 = consumers.s3Client();
-  console.log('[worker] started (relay, consumer, sweeper)');
+  console.log('[worker] started (relay, consumer, sweeper, media reconciler)');
 
   const heartbeat = setInterval(() => { try { fs.writeFileSync(config.workerHeartbeatFile, String(Date.now())); } catch { /* read-only fs */ } }, 5000);
   fs.writeFileSync(config.workerHeartbeatFile, String(Date.now()));
@@ -48,6 +49,7 @@ async function main() {
   const loops = [
     loop('relay', 250, async () => (await relayBatch(redis)) > 0),
     loop('consumer', 0, async () => (await consumers.consumeOnce(consumerRedis, s3, 'worker-1', stopped)) > 0),
+    loop('media-reconcile', 1000, async () => { await reconciler.run(); return false; }),
     loop('sweeper', 10000, async () => { await sweepExpired(); return false; }),
   ];
 
