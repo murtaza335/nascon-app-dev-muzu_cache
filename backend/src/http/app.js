@@ -20,6 +20,7 @@ const guestRoutes = require('../routes/audit/guest');
 const moderationRoutes = require('../routes/audit/moderation');
 const privacyRoutes = require('../routes/audit/privacy');
 const internalMediaRoutes = require('../routes/internalMedia');
+const webRoutes = require('../routes/web');
 const qrShortRoutes = require('../routes/qrShort');
 const metricsRoutes = require('../routes/metrics');
 const pingRoutes = require('../routes/api/ping');
@@ -46,6 +47,7 @@ function createApp() {
   app.use(metricsRoutes);
   app.use(qrShortRoutes);
   app.use(internalMediaRoutes);
+  app.use(webRoutes);
   app.use('/audit/v1', resetRoutes);
   app.use('/audit/v1', rbacRoutes);
   app.use('/audit/v1', sportsRoutes);
